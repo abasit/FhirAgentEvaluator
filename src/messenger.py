@@ -100,6 +100,7 @@ class Messenger:
         self,
         message: str,
         url: str,
+        task_id: int,
         new_conversation: bool = False,
         timeout: int = DEFAULT_TIMEOUT,
     ):
@@ -115,15 +116,16 @@ class Messenger:
         Returns:
             str: The agent's response message
         """
+        key = (url, task_id)
         outputs = await send_message(
             message=message,
             base_url=url,
-            context_id=None if new_conversation else self._context_ids.get(url, None),
+            context_id=None if new_conversation else self._context_ids.get(key, None),
             timeout=timeout,
         )
         if outputs.get("status", "completed") != "completed":
             raise RuntimeError(f"{url} responded with: {outputs}")
-        self._context_ids[url] = outputs.get("context_id", None)
+        self._context_ids[key] = outputs.get("context_id", None)
         return outputs["response"]
 
     def reset(self):

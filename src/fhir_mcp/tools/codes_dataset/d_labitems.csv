@@ -1,0 +1,1623 @@
+itemid,label,fluid,category
+50808,free calcium,blood,blood gas
+50826,tidal volume,blood,blood gas
+50813,lactate,blood,blood gas
+52029,% ionized calcium,blood,blood gas
+50801,alveolar-arterial gradient,blood,blood gas
+50810,"hematocrit, calculated",blood,blood gas
+52025,delete,blood,blood gas
+52031,osmolality,blood,blood gas
+52022,"albumin, blood",blood,blood gas
+50806,"chloride, whole blood",blood,blood gas
+50820,ph,blood,blood gas
+52028,hematocrit,blood,blood gas
+52036,voided specimen,blood,blood gas
+50812,intubated,blood,blood gas
+50817,oxygen saturation,blood,blood gas
+52035,total calcium,blood,blood gas
+50823,required o2,blood,blood gas
+52024,"creatinine, whole blood",blood,blood gas
+52037,wb tco2,blood,blood gas
+50815,o2 flow,blood,blood gas
+52452,"potassium, whole blood",blood,blood gas
+50804,calculated total co2,blood,blood gas
+52030,lithium,blood,blood gas
+50811,hemoglobin,blood,blood gas
+50824,"sodium, whole blood",blood,blood gas
+52033,specimen type,blood,blood gas
+52027,"glucose, whole blood",blood,blood gas
+50802,base excess,blood,blood gas
+50814,methemoglobin,blood,blood gas
+52034,total calcium,blood,blood gas
+52442,lactate,blood,blood gas
+50818,pco2,blood,blood gas
+50828,ventilator,blood,blood gas
+50809,glucose,blood,blood gas
+50821,po2,blood,blood gas
+52026,estimated gfr (mdrd equation),blood,blood gas
+52434,"chloride, whole blood",blood,blood gas
+50803,"calculated bicarbonate, whole blood",blood,blood gas
+52023,assist/control,blood,blood gas
+50822,"potassium, whole blood",blood,blood gas
+50827,ventilation rate,blood,blood gas
+52032,p50 of hemoglobin,blood,blood gas
+50819,peep,blood,blood gas
+52021,abz,blood,blood gas
+50805,carboxyhemoglobin,blood,blood gas
+50816,oxygen,blood,blood gas
+50825,temperature,blood,blood gas
+52455,"sodium, whole blood",blood,blood gas
+52039,calculated bicarbonate,fluid,blood gas
+52042,po2,fluid,blood gas
+52040,pco2,fluid,blood gas
+52038,base excess,fluid,blood gas
+52041,ph,fluid,blood gas
+52045,"ph, urine",urine,blood gas
+52044,"osmolality, urine",urine,blood gas
+52047,"sodium, urine",urine,blood gas
+52046,"potassium, urine",urine,blood gas
+52043,voided specimen,other body fluid,blood gas
+50829,fluid type,other body fluid,blood gas
+50833,potassium,other body fluid,blood gas
+50834,"sodium, body fluid",other body fluid,blood gas
+50832,"po2, body fluid",other body fluid,blood gas
+50831,ph,other body fluid,blood gas
+50830,"pco2, body fluid",other body fluid,blood gas
+50858,acid phosphatase,blood,chemistry
+50879,barbiturate screen,blood,chemistry
+50900,carcinoembyronic antigen (cea),blood,chemistry
+50914,cyclosporin,blood,chemistry
+51582,ch50,blood,chemistry
+51615,epstein-barr virus ebna igg ab,blood,chemistry
+51672,immune complexes,blood,chemistry
+51685,lidocaine,blood,chemistry
+51755,white blood cells,blood,chemistry
+51773,rfxfrkl,blood,chemistry
+53153,hiv screen,blood,chemistry
+50925,folate,blood,chemistry
+50927,gamma glutamyltransferase,blood,chemistry
+50953,"iron binding capacity, total",blood,chemistry
+51007,uric acid,blood,chemistry
+51670,icd9,blood,chemistry
+51740,toxic screen,blood,chemistry
+51743,toxoplasma igm ab,blood,chemistry
+51757,xxx,blood,chemistry
+53146,anti hav,blood,chemistry
+50854,absolute a1c,blood,chemistry
+50887,blue top hold,blood,chemistry
+50945,homocysteine,blood,chemistry
+50958,luteinizing hormone,blood,chemistry
+50993,thyroid stimulating hormone,blood,chemistry
+51557,anti-microsomal antibody,blood,chemistry
+51659,hpe3,blood,chemistry
+51683,"ld, isoenzyme 4",blood,chemistry
+51693,mumps igg ab,blood,chemistry
+51709,quantitative rpr test,blood,chemistry
+51734,stx3,blood,chemistry
+50870,"anti-gliadin antibody, iga",blood,chemistry
+50979,red top hold,blood,chemistry
+51010,vitamin b12,blood,chemistry
+50893,"calcium, total",blood,chemistry
+50899,carbamazepine,blood,chemistry
+51567,beta hydroxybutyrate,blood,chemistry
+51580,calculated ck-mb,blood,chemistry
+51629,fructosamine plus,blood,chemistry
+51658,hpe2,blood,chemistry
+51681,"ld, isoenzyme 2",blood,chemistry
+51695,myoglobin,blood,chemistry
+51724,rubella igg ab,blood,chemistry
+51756,white blood cells,blood,chemistry
+50866,ammonia,blood,chemistry
+50871,anti-mitochondrial antibody,blood,chemistry
+50918,double stranded dna,blood,chemistry
+51625,free kappa,blood,chemistry
+51641,hemoglobin  a,blood,chemistry
+50869,anti-dgp (iga/igg),blood,chemistry
+50936,"hcg, maternal screen",blood,chemistry
+50977,quinidine,blood,chemistry
+50991,thyroglobulin,blood,chemistry
+51590,cmv interpretation,blood,chemistry
+51651,hepatitis c viral load,blood,chemistry
+51708,qnthbsab,blood,chemistry
+53086,alkaline phosphatase,blood,chemistry
+50960,magnesium,blood,chemistry
+51009,vancomycin,blood,chemistry
+51633,hbeag,blood,chemistry
+51742,toxoplasma igg ab value,blood,chemistry
+50915,d-dimer,blood,chemistry
+50983,sodium,blood,chemistry
+51589,cmv igm ab value,blood,chemistry
+51597,cvhlc,blood,chemistry
+51640,hemoglobin,blood,chemistry
+51660,hpe4,blood,chemistry
+52562,folate,blood,chemistry
+50917,digoxin,blood,chemistry
+51569,"bilirubin, neonatal, direct",blood,chemistry
+51729,serum b12,blood,chemistry
+51732,stx1,blood,chemistry
+52500,anion gap,blood,chemistry
+53088,asparate aminotransferase,blood,chemistry
+50923,fax,blood,chemistry
+50926,follicle stimulating hormone,blood,chemistry
+50949,immunoglobulin a,blood,chemistry
+50965,parathyroid hormone,blood,chemistry
+50980,rheumatoid factor,blood,chemistry
+50981,salicylate,blood,chemistry
+50986,tacrofk,blood,chemistry
+51585,clostrid,blood,chemistry
+51604,delete,blood,chemistry
+51620,epstein-barr virus vca igm ab,blood,chemistry
+51650,hepatitis b virus e antigen,blood,chemistry
+51686,lip2,blood,chemistry
+51689,lyme g and m value,blood,chemistry
+51710,rapid plasma reagin test,blood,chemistry
+51741,toxoplasma igg ab,blood,chemistry
+51772,pan3,blood,chemistry
+50905,"cholesterol, ldl, calculated",blood,chemistry
+50928,gastrin,blood,chemistry
+50948,immunofixation,blood,chemistry
+50964,"osmolality, measured",blood,chemistry
+51634,hbsag,blood,chemistry
+51657,hpe1,blood,chemistry
+51673,immunoelectrophoresis,blood,chemistry
+51759,z,blood,chemistry
+50895,calculated tbg,blood,chemistry
+51687,lipo electrophoresis,blood,chemistry
+51745,toxoplasma interpretation,blood,chemistry
+53140,aldosterone,blood,chemistry
+50997,tobramycin,blood,chemistry
+51568,"bilirubin, neonatal",blood,chemistry
+51577,c5,blood,chemistry
+51592,conj bili,blood,chemistry
+51594,"creatine kinase, isoenzyme bb",blood,chemistry
+51602,delete,blood,chemistry
+51774,rfxhcv,blood,chemistry
+50876,anti-smooth muscle antibody,blood,chemistry
+50894,calculated free testosterone,blood,chemistry
+50955,light green top hold,blood,chemistry
+51583,chol estr,blood,chemistry
+51700,np-fx,blood,chemistry
+51713,reflex confirmatory hepatitis c viral load,blood,chemistry
+51748,treponema pallidum (syphilis) ab,blood,chemistry
+53150,anti hbs,blood,chemistry
+50942,hepatitis b virus core antibody,blood,chemistry
+50950,immunoglobulin g,blood,chemistry
+50974,prostate specific antigen,blood,chemistry
+50999,tricyclic antidepressant screen,blood,chemistry
+51004,"ue3, maternal screen",blood,chemistry
+51559,anti-ro,blood,chemistry
+51564,arch-1,blood,chemistry
+51596,"creatine kinase, isoenzyme mm",blood,chemistry
+51611,down syndrome risk,blood,chemistry
+51676,insulin,blood,chemistry
+51749,treponema pallidum (syphilis) value,blood,chemistry
+50852,% hemoglobin a1c,blood,chemistry
+50886,blood culture hold,blood,chemistry
+51581,carotene,blood,chemistry
+51720,reserved4,blood,chemistry
+51752,voided specimen,blood,chemistry
+53144,anca titer,blood,chemistry
+50902,chloride,blood,chemistry
+50972,procainamide,blood,chemistry
+50973,prolactin,blood,chemistry
+50976,"protein, total",blood,chemistry
+51560,anti-sars-cov-2 iga,blood,chemistry
+51613,eag,blood,chemistry
+51628,fructosamine,blood,chemistry
+51635,hbsag,blood,chemistry
+51638,hematocrit,blood,chemistry
+51712,referred,blood,chemistry
+51738,thyroid binding globulin,blood,chemistry
+53084,alanine aminotransferase,blood,chemistry
+50868,anion gap,blood,chemistry
+50874,"anti-nuclear antibody, titer",blood,chemistry
+50922,ethanol,blood,chemistry
+50966,phenobarbital,blood,chemistry
+50998,transferrin,blood,chemistry
+51637,"hcg, qualitative",blood,chemistry
+51667,h. pylori igg ab value,blood,chemistry
+51696,neural tube defect risk,blood,chemistry
+52610,potassium,blood,chemistry
+50883,"bilirubin, direct",blood,chemistry
+51576,c2,blood,chemistry
+51692,"monospot, rapid antigen",blood,chemistry
+51699,not done,blood,chemistry
+51761,zinc,blood,chemistry
+50861,alanine aminotransferase (alt),blood,chemistry
+50863,alkaline phosphatase,blood,chemistry
+50881,beta-2 microglobulin,blood,chemistry
+50913,cryoglobulin,blood,chemistry
+51572,bioavailable testosterone,blood,chemistry
+51631,glycated hemoglobin,blood,chemistry
+51636,"hcg, multiples of median",blood,chemistry
+51649,hepatitis b virus e antibody,blood,chemistry
+51767,ee5,blood,chemistry
+50896,calculated thyroxine (t4) index,blood,chemistry
+50930,globulin,blood,chemistry
+50933,green top hold (plasma),blood,chemistry
+50940,hepatitis b surface antibody,blood,chemistry
+50941,hepatitis b surface antigen,blood,chemistry
+51598,cytomegalovirus viral load,blood,chemistry
+51601,delete,blood,chemistry
+53129,3t,blood,chemistry
+53137,afp mom,blood,chemistry
+51648,hepatitis b viral load,blood,chemistry
+51704,platelet count,blood,chemistry
+51735,stx4,blood,chemistry
+51763,ee2,blood,chemistry
+53087,amylase,blood,chemistry
+53141,alpha-1,blood,chemistry
+53143,alpha-2,blood,chemistry
+50865,amikacin,blood,chemistry
+50885,"bilirubin, total",blood,chemistry
+50921,estradiol,blood,chemistry
+51609,disopyramide,blood,chemistry
+51617,epstein-barr virus igm ab value,blood,chemistry
+51621,ethylene glycol,blood,chemistry
+51623,fibrinogen,blood,chemistry
+51632,growth hormone,blood,chemistry
+51643,hemoglobin  a2,blood,chemistry
+51664,hpe8,blood,chemistry
+51770,mdrdgfr,blood,chemistry
+52623,sodium,blood,chemistry
+53128,11-deoxycorticosterone,blood,chemistry
+50857,acetone,blood,chemistry
+50907,"cholesterol, total",blood,chemistry
+50994,thyroxine (t4),blood,chemistry
+51005,uptake ratio,blood,chemistry
+51575,c1q,blood,chemistry
+51678,l,blood,chemistry
+51725,rubeola igg ab,blood,chemistry
+51726,rubeola igg ab value,blood,chemistry
+51762,ee1,blood,chemistry
+53142,alpha-1-antitrypsin,blood,chemistry
+50884,"bilirubin, indirect",blood,chemistry
+50931,glucose,blood,chemistry
+50952,iron,blood,chemistry
+50968,"phenytoin, free",blood,chemistry
+51647,hemoglobin  s,blood,chemistry
+51680,"ld, isoenzyme 1",blood,chemistry
+51682,"ld, isoenzyme 3",blood,chemistry
+51707,progesterone,blood,chemistry
+51750,"ue3, multiples of median",blood,chemistry
+50897,call,blood,chemistry
+50908,ck-mb index,blood,chemistry
+50954,lactate dehydrogenase (ld),blood,chemistry
+50978,rapamycin,blood,chemistry
+50984,stat,blood,chemistry
+51618,epstein-barr virus interpretation,blood,chemistry
+51690,lymphocytes,blood,chemistry
+51733,stx2,blood,chemistry
+51751,uncon bil,blood,chemistry
+53147,anti hbc,blood,chemistry
+53154,lactate,blood,chemistry
+50860,"afp, maternal screen",blood,chemistry
+50877,anti-thyroglobulin antibodies,blood,chemistry
+51562,anti-skin antibody,blood,chemistry
+51578,c6,blood,chemistry
+51645,"hemoglobin, calculated",blood,chemistry
+51669,htlv ab,blood,chemistry
+51688,lyme c6 ab,blood,chemistry
+51694,mumps igg ab value,blood,chemistry
+51717,reserved,blood,chemistry
+51722,rfxldlm,blood,chemistry
+52569,glucose,blood,chemistry
+52647,urea nitrogen,blood,chemistry
+53094,hbv vl ct,blood,chemistry
+50898,cancer antigen 27.29,blood,chemistry
+50904,"cholesterol, hdl",blood,chemistry
+50946,human chorionic gonadotropin,blood,chemistry
+50971,potassium,blood,chemistry
+50975,protein electrophoresis,blood,chemistry
+51000,triglycerides,blood,chemistry
+51573,bromide,blood,chemistry
+51610,dlta bili,blood,chemistry
+51612,dr. x,blood,chemistry
+51627,free lambda,blood,chemistry
+51656,hlap,blood,chemistry
+53096,"protein, total",blood,chemistry
+50882,bicarbonate,blood,chemistry
+50888,blue top hold frozen,blood,chemistry
+50901,centromere,blood,chemistry
+50992,thyroid peroxidase antibodies,blood,chemistry
+51566,beta,blood,chemistry
+51584,chylomicrons,blood,chemistry
+51599,d,blood,chemistry
+51744,toxoplasma igm ab value,blood,chemistry
+50890,c3,blood,chemistry
+50916,dhea-sulfate,blood,chemistry
+50935,haptoglobin,blood,chemistry
+51593,copper,blood,chemistry
+51606,digitoxin,blood,chemistry
+51668,hsap,blood,chemistry
+53138,(albumin),blood,chemistry
+50864,alpha-fetoprotein,blood,chemistry
+50938,hepatitis a virus igm antibody,blood,chemistry
+50959,macro prolactin,blood,chemistry
+50967,phenytoin,blood,chemistry
+50995,"thyroxine (t4), free",blood,chemistry
+51646,hemoglobin  f,blood,chemistry
+51706,problem specimen,blood,chemistry
+51714,reflex hiv confirmation,blood,chemistry
+51764,ee7,blood,chemistry
+51769,rubiggv,blood,chemistry
+51771,,blood,chemistry
+53145,anti-gbm antibody,blood,chemistry
+50862,albumin,blood,chemistry
+50911,"creatine kinase, mb isoenzyme",blood,chemistry
+50969,"phenytoin, percent free",blood,chemistry
+51721,reverse t3,blood,chemistry
+51731,single stranded dna,blood,chemistry
+53132,absolute lymphocyte count,blood,chemistry
+50982,sex hormone binding globulin,blood,chemistry
+51565,argon,blood,chemistry
+51746,transferrin saturation,blood,chemistry
+50859,"acid phosphatase, non-prostatic",blood,chemistry
+50878,asparate aminotransferase (ast),blood,chemistry
+50912,creatinine,blood,chemistry
+50957,lithium,blood,chemistry
+50985,study tubes,blood,chemistry
+50990,theophylline,blood,chemistry
+51006,urea nitrogen,blood,chemistry
+51608,dirlst,blood,chemistry
+51698,no md,blood,chemistry
+52546,creatinine,blood,chemistry
+50867,amylase,blood,chemistry
+50906,"cholesterol, ldl, measured",blood,chemistry
+50939,"hepatitis b core antibody, igm",blood,chemistry
+51003,troponin t,blood,chemistry
+51652,high-sensitivity crp,blood,chemistry
+51675,inr(pt),blood,chemistry
+51730,serum folate,blood,chemistry
+51758,xylose,blood,chemistry
+53130,4t,blood,chemistry
+50892,ca-125,blood,chemistry
+50970,phosphate,blood,chemistry
+51556,anti-microsomal antibodies,blood,chemistry
+51574,c1 inhibitor,blood,chemistry
+51607,"dimeric inhibin a, maternal screen",blood,chemistry
+51691,mcv,blood,chemistry
+50875,anti-parietal cell antibody,blood,chemistry
+51008,valproic acid,blood,chemistry
+51570,"bilirubin, neonatal, indirect",blood,chemistry
+51616,epstein-barr virus igg ab value,blood,chemistry
+51723,rubella,blood,chemistry
+51739,total co2,blood,chemistry
+52642,troponin i,blood,chemistry
+53148,anti hbe,blood,chemistry
+50891,c4,blood,chemistry
+50943,hepatitis c virus antibody,blood,chemistry
+50947,i,blood,chemistry
+51642,hemoglobin  a1,blood,chemistry
+51728,serum b12,blood,chemistry
+52535,chloride,blood,chemistry
+53135,"acid phosphatase, prostatic fraction",blood,chemistry
+53151,anti-la,blood,chemistry
+50855,absolute hemoglobin,blood,chemistry
+50919,edta hold,blood,chemistry
+50963,ntprobnp,blood,chemistry
+50996,"tissue transglutaminase ab, iga",blood,chemistry
+51579,ca 19-9,blood,chemistry
+51626,free kappa/free lambda ratio,blood,chemistry
+51705,primidone,blood,chemistry
+51715,renin,blood,chemistry
+51754,vzv igg ab value,blood,chemistry
+50924,ferritin,blood,chemistry
+50932,gray top hold (plasma),blood,chemistry
+50956,lipase,blood,chemistry
+50989,"testosterone, free",blood,chemistry
+51563,anti-sm,blood,chemistry
+51587,cmv igg ab value,blood,chemistry
+51600,delete,blood,chemistry
+51653,hiv 1 ab confirmation,blood,chemistry
+51719,reserved3,blood,chemistry
+53134,absolute other wbc,blood,chemistry
+50873,anti-nuclear antibody,blood,chemistry
+50880,benzodiazepine screen,blood,chemistry
+50889,c-reactive protein,blood,chemistry
+50920,estimated gfr (mdrd equation),blood,chemistry
+51558,antirnp,blood,chemistry
+51619,epstein-barr virus vca igg ab,blood,chemistry
+51665,hpe9,blood,chemistry
+51736,stx5,blood,chemistry
+51605,delta/dlt,blood,chemistry
+51679,lap,blood,chemistry
+51684,"ld, isoenzyme 5",blood,chemistry
+51703,pepgel,blood,chemistry
+51753,vzv igg ab,blood,chemistry
+52551,d-dimer,blood,chemistry
+53089,"bilirubin, total",blood,chemistry
+53139,aldosterone,blood,chemistry
+50909,cortisol,blood,chemistry
+50910,creatine kinase (ck),blood,chemistry
+50951,immunoglobulin m,blood,chemistry
+51586,cmv igg ab,blood,chemistry
+51630,gamma,blood,chemistry
+51662,hpe6,blood,chemistry
+51701,"osmolality, calculated",blood,chemistry
+51702,park,blood,chemistry
+53133,absolute neutrophil,blood,chemistry
+51002,troponin i,blood,chemistry
+51624,free calcium,blood,chemistry
+51639,hematocrit,blood,chemistry
+51644,hemoglobin  c,blood,chemistry
+51663,hpe7,blood,chemistry
+52548,cryoglobulin,blood,chemistry
+53149,anti-hbs,blood,chemistry
+50988,testosterone,blood,chemistry
+51571,billed,blood,chemistry
+51654,hiv 1 viral load,blood,chemistry
+53085,albumin,blood,chemistry
+53093,gamma glutamyltranferase,blood,chemistry
+50961,methotrexate,blood,chemistry
+51655,hiv 2 ab confirmation,blood,chemistry
+51666,h. pylori igg ab,blood,chemistry
+51718,reserved1,blood,chemistry
+51765,ee3,blood,chemistry
+53136,adrenocorticotrophic hormone,blood,chemistry
+50872,anti-neutrophil cytoplasmic antibody,blood,chemistry
+50903,cholesterol ratio (total/hdl),blood,chemistry
+50962,n-acetylprocainamide (napa),blood,chemistry
+51001,triiodothyronine (t3),blood,chemistry
+51671,ifegel,blood,chemistry
+53131,5' nucleotidase,blood,chemistry
+50934,h,blood,chemistry
+50937,hepatitis a virus antibody,blood,chemistry
+51614,epstein-barr virus  ebna igg ab,blood,chemistry
+51674,immunoglobulin e,blood,chemistry
+51737,stx6,blood,chemistry
+51747,treponemal antibody test,blood,chemistry
+51760,z,blood,chemistry
+51768,ee6,blood,chemistry
+53152,hiv final,blood,chemistry
+50853,25-oh vitamin d,blood,chemistry
+50856,acetaminophen,blood,chemistry
+50929,gentamicin,blood,chemistry
+51588,cmv igm ab,blood,chemistry
+51591,confirmation,blood,chemistry
+51595,"creatine kinase, isoenzyme mb",blood,chemistry
+51603,delete,blood,chemistry
+51661,hpe5,blood,chemistry
+51677,k (green),blood,chemistry
+51727,send out,blood,chemistry
+53095,lyme vsie/pepc10 antibody,blood,chemistry
+51954,cdt027,stool,chemistry
+51945,norovirus genogroup i,stool,chemistry
+51953,voided specimen,stool,chemistry
+51928,alpha-1,stool,chemistry
+51934,c diff toxin antigen assay,stool,chemistry
+51941,"glucose, stool",stool,chemistry
+51931,beta,stool,chemistry
+51937,"creatinine, stool",stool,chemistry
+51064,"potassium, stool",stool,chemistry
+51926,(albumin),stool,chemistry
+51951,"urea nitrogen, stool",stool,chemistry
+51061,"bicarbonate, stool",stool,chemistry
+51947,o & p,stool,chemistry
+51063,"osmolality, stool",stool,chemistry
+51925,72 hr fat,stool,chemistry
+51952,"uric acid, stool",stool,chemistry
+51062,"chloride, stool",stool,chemistry
+51065,"sodium, stool",stool,chemistry
+51935,"cholesterol, stool",stool,chemistry
+51938,cryptococ,stool,chemistry
+51933,c. diff pcr,stool,chemistry
+51930,"amylase, stool",stool,chemistry
+51948,sudan stain,stool,chemistry
+51946,norovirus genogroup ii,stool,chemistry
+51950,"triglycerides, stool",stool,chemistry
+51944,"lactate dehydrogenase, stool",stool,chemistry
+51929,alpha-2,stool,chemistry
+51940,gamma,stool,chemistry
+51942,"igg, stool",stool,chemistry
+51943,"immunoelectrophoresis, stool",stool,chemistry
+51936,clostrid,stool,chemistry
+51927,"albumin, stool",stool,chemistry
+51955,,stool,chemistry
+51932,"bilirubin, total, stool",stool,chemistry
+51949,"total protein, stool",stool,chemistry
+51956,cdt027,stool,chemistry
+51939,fl scan,stool,chemistry
+51983,"iron, urine",urine,chemistry
+51097,"potassium, urine",urine,chemistry
+51967,blood,urine,chemistry
+51976,"cortisol, urine",urine,chemistry
+51070,"albumin/creatinine, urine",urine,chemistry
+51988,o & p,urine,chemistry
+52016,z,urine,chemistry
+52019,pan2,urine,chemistry
+51091,"myoglobin, urine",urine,chemistry
+51073,"amylase/creatinine ratio, urine",urine,chemistry
+51081,"creatinine, serum",urine,chemistry
+51079,"cocaine, urine",urine,chemistry
+51995,study urine,urine,chemistry
+52004,utx1,urine,chemistry
+51098,"prot. electrophoresis, urine",urine,chemistry
+51986,neisseria gonorrhoeae,urine,chemistry
+51071,"amphetamine screen, urine",urine,chemistry
+51072,"amylase, urine",urine,chemistry
+51086,"immunofixation, urine",urine,chemistry
+51987,nitrite,urine,chemistry
+52006,utx3,urine,chemistry
+52014,voided specimen,urine,chemistry
+51066,24 hr calcium,urine,chemistry
+51957,17-hydroxycorticosteroids,urine,chemistry
+51989,oxycodone,urine,chemistry
+52017,"zinc, urine",urine,chemistry
+51994,specific gravity,urine,chemistry
+51069,"albumin, urine",urine,chemistry
+51991,"propoxyphene, urine",urine,chemistry
+51102,"total protein, urine",urine,chemistry
+52013,vanillylmandelic acid,urine,chemistry
+51084,"glucose, urine",urine,chemistry
+51089,marijuana,urine,chemistry
+51966,bilirubin,urine,chemistry
+51984,ketone,urine,chemistry
+51998,upepgel,urine,chemistry
+51083,"ethanol, urine",urine,chemistry
+51104,"urea nitrogen, urine",urine,chemistry
+51960,aldolase,urine,chemistry
+51972,chlamydia trachomatis,urine,chemistry
+51974,"copper, urine",urine,chemistry
+52008,utx5,urine,chemistry
+52015,xylose,urine,chemistry
+52018,pan1,urine,chemistry
+51095,"phosphate, urine",urine,chemistry
+52007,utx4,urine,chemistry
+51999,urine amylase,urine,chemistry
+51080,creatinine clearance,urine,chemistry
+51100,"sodium, urine",urine,chemistry
+51968,camp,urine,chemistry
+52730,ph,urine,chemistry
+51090,"methadone, urine",urine,chemistry
+51093,"osmolality, urine",urine,chemistry
+51068,24 hr protein,urine,chemistry
+52009,utx6,urine,chemistry
+52012,utx9,urine,chemistry
+51096,porphobilinogen screen,urine,chemistry
+51959,"5-hiaa, urine",urine,chemistry
+52703,"albumin, urine",urine,chemistry
+51067,24 hr creatinine,urine,chemistry
+51087,length of urine collection,urine,chemistry
+51106,urine creatinine,urine,chemistry
+51105,"uric acid, urine",urine,chemistry
+51971,ccoc,urine,chemistry
+52720,"hcg, urine, qualitative",urine,chemistry
+52020,utx10,urine,chemistry
+51980,fentanyl,urine,chemistry
+51996,trichomonas vaginalis,urine,chemistry
+51078,"chloride, urine",urine,chemistry
+51103,uhold,urine,chemistry
+51978,dirlist,urine,chemistry
+51981,glucose,urine,chemistry
+51076,"bicarbonate, urine",urine,chemistry
+51088,"magnesium, urine",urine,chemistry
+51092,"opiate screen, urine",urine,chemistry
+51074,"barbiturate screen, urine",urine,chemistry
+51964,"amylase, serum",urine,chemistry
+51973,copi,urine,chemistry
+52002,urobilinogen,urine,chemistry
+51101,total collection time,urine,chemistry
+51982,"immunoelectrophoresis, urine",urine,chemistry
+51099,protein/creatinine ratio,urine,chemistry
+51109,"urine volume, total",urine,chemistry
+51969,"catecholamines, urine",urine,chemistry
+51977,"creatinine, blood",urine,chemistry
+51997,uifegel,urine,chemistry
+51970,cben,urine,chemistry
+51993,referred,urine,chemistry
+51107,"urine tube, held",urine,chemistry
+51958,"17-ketosteroids, urine",urine,chemistry
+51962,alpha-2,urine,chemistry
+52005,utx2,urine,chemistry
+51075,"benzodiazepine screen, urine",urine,chemistry
+51992,protein,urine,chemistry
+51961,alpha-1,urine,chemistry
+51963,amylase/creatinine clearance,urine,chemistry
+51965,beta,urine,chemistry
+51985,leukocytes,urine,chemistry
+51979,"estriol, urine",urine,chemistry
+51990,"phenothiazine screen, urine",urine,chemistry
+51085,"hcg, urine, qualitative",urine,chemistry
+52000,urine  creatinine,urine,chemistry
+52003,uroporphyrins,urine,chemistry
+51094,ph,urine,chemistry
+51108,urine volume,urine,chemistry
+52011,utx8,urine,chemistry
+51082,"creatinine, urine",urine,chemistry
+52010,utx7,urine,chemistry
+51077,"calcium, urine",urine,chemistry
+51975,coproporphyrins,urine,chemistry
+52001,"urine pep, gamma region",urine,chemistry
+50839,"chloride, ascites",ascites,chemistry
+50846,"osmolality, ascites",ascites,chemistry
+50838,"bilirubin, total, ascites",ascites,chemistry
+53123,"immunoelectrophoresis, ascites",ascites,chemistry
+50845,"miscellaneous, ascites",ascites,chemistry
+50844,"lipase, ascites",ascites,chemistry
+50847,"potassium, ascites",ascites,chemistry
+53117,alpha-1,ascites,chemistry
+50837,"bicarbonate, ascites",ascites,chemistry
+53118,alpha-2,ascites,chemistry
+53120,clostrid,ascites,chemistry
+50851,"urea nitrogen, ascites",ascites,chemistry
+53119,beta,ascites,chemistry
+53126,"uric acid, ascites",ascites,chemistry
+50841,"creatinine, ascites",ascites,chemistry
+50840,"cholesterol, ascites",ascites,chemistry
+50835,"albumin, ascites",ascites,chemistry
+53121,cryptococ,ascites,chemistry
+53116,(albumin),ascites,chemistry
+53122,fl scan,ascites,chemistry
+50848,"sodium, ascites",ascites,chemistry
+50849,"total protein, ascites",ascites,chemistry
+53124,"immunoglobulin g, ascites",ascites,chemistry
+50836,"amylase, ascites",ascites,chemistry
+50850,"triglycerides, ascites",ascites,chemistry
+50843,"lactate dehydrogenase, ascites",ascites,chemistry
+53125,"pep, ascites, gamma region",ascites,chemistry
+50842,"glucose, ascites",ascites,chemistry
+53127,voided specimen,ascites,chemistry
+51910,(albumin),pleural,chemistry
+51052,"creatinine, pleural",pleural,chemistry
+51915,cryptococ,pleural,chemistry
+51046,"albumin, pleural",pleural,chemistry
+51913,beta,pleural,chemistry
+51048,"bicarbonate, pleural",pleural,chemistry
+51047,"amylase, pleural",pleural,chemistry
+51051,"cholesterol, pleural",pleural,chemistry
+51055,"lipase, pleural",pleural,chemistry
+51056,"miscellaneous, pleural",pleural,chemistry
+51920,"pep, pleural, gamma region",pleural,chemistry
+51911,alpha-1,pleural,chemistry
+51918,"immunoglobulin g, pleural",pleural,chemistry
+51060,"triglycerides, pleural",pleural,chemistry
+51050,"chloride, pleural",pleural,chemistry
+51919,"osmolality, pleural",pleural,chemistry
+51058,"sodium, pleural",pleural,chemistry
+51921,"probnp, pleural",pleural,chemistry
+51912,alpha-2,pleural,chemistry
+51923,"uric acid, pleural",pleural,chemistry
+51049,"bilirubin, total, pleural",pleural,chemistry
+51059,"total protein, pleural",pleural,chemistry
+51914,clostrid,pleural,chemistry
+51054,"lactate dehydrogenase, pleural",pleural,chemistry
+51917,"immunoelectrophoresis, pleural",pleural,chemistry
+51057,"potassium, pleural",pleural,chemistry
+51916,fl scan,pleural,chemistry
+51924,voided specimen,pleural,chemistry
+51053,"glucose, pleural",pleural,chemistry
+51922,"urea nitrogen, pleural",pleural,chemistry
+51828,voided specimen,bone marrow,chemistry
+51809,alpha-2,joint fluid,chemistry
+51810,beta,joint fluid,chemistry
+51812,"bilirubin, total, joint fluid",joint fluid,chemistry
+51824,"triglycerides, joint fluid",joint fluid,chemistry
+51814,"cholesterol, joint fluid",joint fluid,chemistry
+51023,"ld, joint fluid",joint fluid,chemistry
+51816,cryptococ,joint fluid,chemistry
+51825,"urea nitrogen, joint fluid",joint fluid,chemistry
+51019,"albumin, joint fluid",joint fluid,chemistry
+51020,"amylase, joint fluid",joint fluid,chemistry
+51024,"total protein, joint fluid",joint fluid,chemistry
+51807,(albumin),joint fluid,chemistry
+51815,clostrid,joint fluid,chemistry
+51826,"uric acid, joint fluid",joint fluid,chemistry
+51808,alpha-1,joint fluid,chemistry
+51823,"sodium, joint fluid",joint fluid,chemistry
+51818,"igg, joint fluid",joint fluid,chemistry
+51022,"glucose, joint fluid",joint fluid,chemistry
+51822,"potassium, joint fluid",joint fluid,chemistry
+51819,"immunoelectrophoresis, joint fluid",joint fluid,chemistry
+51821,"pep, joint fluid, gamma region",joint fluid,chemistry
+51813,"chloride, joint fluid",joint fluid,chemistry
+51817,fl scan,joint fluid,chemistry
+51820,"osmolality, joint fluid",joint fluid,chemistry
+51827,voided specimen,joint fluid,chemistry
+51021,"creatinine, joint fluid",joint fluid,chemistry
+51811,"bicarbonate,joint fluid",joint fluid,chemistry
+51840,beta,other body fluid,chemistry
+51861,"immunoelectrophoresis, fluid",other body fluid,chemistry
+51869,"influenza a, rapid antigen",other body fluid,chemistry
+51894,"strep a, rapid antigen",other body fluid,chemistry
+51025,"albumin, body fluid",other body fluid,chemistry
+51858,hiv 1 viral load,other body fluid,chemistry
+51882,o & p,other body fluid,chemistry
+51865,influenza a by pcr,other body fluid,chemistry
+51841,"blood, occult",other body fluid,chemistry
+51876,"l/s ratio, amniotic fluid",other body fluid,chemistry
+51877,mrsa pcr,other body fluid,chemistry
+51838,alpha-2,other body fluid,chemistry
+51895,"strep a, rapid antigen",other body fluid,chemistry
+51843,c. diff pcr,other body fluid,chemistry
+51042,"sodium, body fluid",other body fluid,chemistry
+51893,staph aureus pcr,other body fluid,chemistry
+51036,"lipase, body fluid",other body fluid,chemistry
+51829,72 hr fat,other body fluid,chemistry
+51857,fl scan,other body fluid,chemistry
+53115,rsv2,other body fluid,chemistry
+51027,"bicarbonate, other fluid",other body fluid,chemistry
+51033,fetalfn,other body fluid,chemistry
+51037,"magnesium, body fluid",other body fluid,chemistry
+51870,"influenza a, rapid antigen",other body fluid,chemistry
+53114,rsv1,other body fluid,chemistry
+51847,clostrid,other body fluid,chemistry
+51881,norovirus genogroup ii,other body fluid,chemistry
+51854,cryptococ,other body fluid,chemistry
+51899,trichomonas vaginalis,other body fluid,chemistry
+51839,anat path hold,other body fluid,chemistry
+53099,cov12,other body fluid,chemistry
+53110,flub2,other body fluid,chemistry
+51862,"immunoglobulin g, body fluid",other body fluid,chemistry
+51889,phosphatidylglycerol,other body fluid,chemistry
+51038,"miscellaneous, body fluid",other body fluid,chemistry
+53098,cov11,other body fluid,chemistry
+53107,flua1,other body fluid,chemistry
+53113,rapid respiratory syncytial virus,other body fluid,chemistry
+51029,"calcium, body fluid",other body fluid,chemistry
+51026,"amylase, body fluid",other body fluid,chemistry
+51028,"bilirubin, total, body fluid",other body fluid,chemistry
+51040,"phosphate, body fluid",other body fluid,chemistry
+53106,e gene endpt,other body fluid,chemistry
+51035,"ld, body fluid",other body fluid,chemistry
+51833,"afp, amniotic fluid",other body fluid,chemistry
+51901,voided specimen,other body fluid,chemistry
+51887,"pep, body fluid",other body fluid,chemistry
+53105,e gene ct,other body fluid,chemistry
+51045,"urea nitrogen, body fluid",other body fluid,chemistry
+51831,acid mao,other body fluid,chemistry
+51872,influenza b by pcr,other body fluid,chemistry
+51031,"cholesterol, body fluid",other body fluid,chemistry
+51842,bun,other body fluid,chemistry
+51856,epr,other body fluid,chemistry
+51897,surfactant/albumin,other body fluid,chemistry
+51907,reuse1,other body fluid,chemistry
+51874,"influenza b, rapid antigen",other body fluid,chemistry
+51905,,other body fluid,chemistry
+51044,triglycer,other body fluid,chemistry
+53109,flub1,other body fluid,chemistry
+53112,n2 gene endpt,other body fluid,chemistry
+51880,norovirus genogroup i,other body fluid,chemistry
+51835,(albumi,other body fluid,chemistry
+51030,"chloride, body fluid",other body fluid,chemistry
+51896,sudan stain,other body fluid,chemistry
+51837,alpha-1,other body fluid,chemistry
+51844,c diff toxin antigen assay,other body fluid,chemistry
+51846,chlamydia trachomatis,other body fluid,chemistry
+51875,"influenza b, rapid antigen",other body fluid,chemistry
+51855,"dspc, amniotic fluid",other body fluid,chemistry
+53108,flua2,other body fluid,chemistry
+51041,"potassium, body fluid",other body fluid,chemistry
+51904,pan2,other body fluid,chemistry
+51902,vpf,other body fluid,chemistry
+51906,reuse,other body fluid,chemistry
+51032,"creatinine, body fluid",other body fluid,chemistry
+51898,surf/alb,other body fluid,chemistry
+51834,"afp, body fluid",other body fluid,chemistry
+51039,"osmolality, body fluid",other body fluid,chemistry
+51888,"pep, body fluid, gamma region",other body fluid,chemistry
+51900,"uric acid, body fluid",other body fluid,chemistry
+53100,cov13,other body fluid,chemistry
+53111,n2 gene ct,other body fluid,chemistry
+53097,cov10,other body fluid,chemistry
+51043,"total protein, body fluid",other body fluid,chemistry
+51873,influenza b by pcr,other body fluid,chemistry
+51903,pan1,other body fluid,chemistry
+51034,"glucose, body fluid",other body fluid,chemistry
+51864,influenza a by pcr,other body fluid,chemistry
+51836,<albumin>,other body fluid,chemistry
+51830,acid bao,other body fluid,chemistry
+51879,neisseria gonorrhoeae,other body fluid,chemistry
+51799,"pep, csf, gamma region",cerebrospinal fluid,chemistry
+51785,"cholesterol, csf",cerebrospinal fluid,chemistry
+51800,"potassium, csf",cerebrospinal fluid,chemistry
+51795,"lactate dehydrogenase, csf",cerebrospinal fluid,chemistry
+51790,"glucose, csf",cerebrospinal fluid,chemistry
+51788,cryptococ,cerebrospinal fluid,chemistry
+51794,"immunoglobulin g, csf",cerebrospinal fluid,chemistry
+51806,voided specimen,cerebrospinal fluid,chemistry
+51789,fl scan,cerebrospinal fluid,chemistry
+51793,"immunoglobulin g, csf",cerebrospinal fluid,chemistry
+51796,"miscellaneous, csf",cerebrospinal fluid,chemistry
+51787,"creatinine, csf",cerebrospinal fluid,chemistry
+51802,"total protein, csf",cerebrospinal fluid,chemistry
+51778,alpha-1,cerebrospinal fluid,chemistry
+51779,alpha-2,cerebrospinal fluid,chemistry
+51792,"immunoelectrophoresis, csf",cerebrospinal fluid,chemistry
+51780,"amylase, csf",cerebrospinal fluid,chemistry
+51782,"bicarbonate, csf",cerebrospinal fluid,chemistry
+51805,"uric acid, csf",cerebrospinal fluid,chemistry
+51783,"bilirubin, total, csf",cerebrospinal fluid,chemistry
+51776,<albumin>,cerebrospinal fluid,chemistry
+51775,(albumin),cerebrospinal fluid,chemistry
+51777,"albumin, csf",cerebrospinal fluid,chemistry
+51801,"sodium, csf",cerebrospinal fluid,chemistry
+51798,"pep, csf",cerebrospinal fluid,chemistry
+51786,clostrid,cerebrospinal fluid,chemistry
+51797,"osmolality, csf",cerebrospinal fluid,chemistry
+51784,"chloride, csf",cerebrospinal fluid,chemistry
+51791,hiv 1 viral load,cerebrospinal fluid,chemistry
+51803,"triglycerides, csf",cerebrospinal fluid,chemistry
+51804,"urea nitrogen, csf",cerebrospinal fluid,chemistry
+51781,beta,cerebrospinal fluid,chemistry
+52290,dna,i,hematology
+52398,fl2-%fl1,q,hematology
+52397,fl2-d,q,hematology
+52401,ssc-d,q,hematology
+52396,fl1-s,q,hematology
+52402,ssc-s,q,hematology
+52395,fl1-%fl2,q,hematology
+52400,fsc-s,q,hematology
+52394,fl1-d,q,hematology
+52399,fl2-s,q,hematology
+51138,anticardiolipin antibody igg,blood,hematology
+51163,cd16/56%,blood,hematology
+51201,epinepherine,blood,hematology
+51229,"heparin, lmw",blood,hematology
+51254,monocytes,blood,hematology
+51259,other cells,blood,hematology
+52145,mono spot test,blood,hematology
+52169,qfib,blood,hematology
+52205,retscat,blood,hematology
+52769,absolute lymphocyte count,blood,hematology
+52853,factor xii,blood,hematology
+51155,cd11c,blood,hematology
+51267,poikilocytosis,blood,hematology
+51273,"protein s, functional",blood,hematology
+51280,reptilase time,blood,hematology
+52092,cd56 %,blood,hematology
+52130,histiocytes,blood,hematology
+52138,kct,blood,hematology
+52154,p2y12 reaction units,blood,hematology
+52934,"reticulocyte count, manual",blood,hematology
+51189,cd57,blood,hematology
+51205,factor vii,blood,hematology
+51252,microcytes,blood,hematology
+51279,red blood cells,blood,hematology
+51291,sickle cells,blood,hematology
+52083,autohem+g,blood,hematology
+52186,test,blood,hematology
+51167,cd2,blood,hematology
+52098,clot lysis,blood,hematology
+52113,factor ix inhibitor,blood,hematology
+52189,thrombin time control,blood,hematology
+52204,rbcdist,blood,hematology
+51187,cd55,blood,hematology
+51230,hla-dr,blood,hematology
+51233,hypochromia,blood,hematology
+52135,immature granulocytes,blood,hematology
+52181,stomatocyte,blood,hematology
+52195,voided specimen,blood,hematology
+51224,hemoglobin c,blood,hematology
+51276,quantitative g6pd,blood,hematology
+52082,aspirin reactivity,blood,hematology
+52096,chloroacetate,blood,hematology
+52144,methemoglobin,blood,hematology
+52146,naphtol acetate stain,blood,hematology
+52163,pt control,blood,hematology
+51180,"cd4 cells, percent",blood,hematology
+52077,acidserum,blood,hematology
+52102,crenated cells,blood,hematology
+52103,cross imm,blood,hematology
+52147,neutx,blood,hematology
+52156,peroxidase staining,blood,hematology
+52159,platelet aggregation,blood,hematology
+51135,adp,blood,hematology
+51153,cd103,blood,hematology
+51268,polychromasia,blood,hematology
+52203,rbcagg,blood,hematology
+52208,basoflg,blood,hematology
+51143,atypical lymphocytes,blood,hematology
+51147,bite cells,blood,hematology
+51184,cd5,blood,hematology
+51196,d-dimer,blood,hematology
+51199,eosinophil count,blood,hematology
+52173,red blood cell enzyme,blood,hematology
+52215,atlflg,blood,hematology
+51154,cd117,blood,hematology
+52115,fibrinoge,blood,hematology
+52182,sudan black staining,blood,hematology
+51142,arachadonic acid,blood,hematology
+51177,cd33,blood,hematology
+51178,cd34,blood,hematology
+51217,glyco a,blood,hematology
+51244,lymphocytes,blood,hematology
+52153,other inhibitor,blood,hematology
+52174,"reptilase time, control",blood,hematology
+52188,thrombin time control,blood,hematology
+51150,blood parasite smear,blood,hematology
+51169,cd20 %,blood,hematology
+51227,hemogloblin s,blood,hematology
+51272,"protein s, antigen",blood,hematology
+51290,sickle cell preparation,blood,hematology
+52072,absolute cd56 count,blood,hematology
+52084,autohem-g,blood,hematology
+52219,wbcscat,blood,hematology
+51186,cd5 absolute count,blood,hematology
+51188,cd56,blood,hematology
+51245,"lymphocytes, percent",blood,hematology
+52095,cd62,blood,hematology
+52120,fitzgerld,blood,hematology
+52160,prekallekrein,blood,hematology
+52178,sct - normalized ratio,blood,hematology
+52187,thrombin time,blood,hematology
+52921,pt,blood,hematology
+52126,heinz aph,blood,hematology
+52190,tissue thromboplastin inhibitor,blood,hematology
+51132,absolute cd8 count,blood,hematology
+51140,antithrombin,blood,hematology
+51141,apt test,blood,hematology
+51212,fetal hemoglobin,blood,hematology
+51214,"fibrinogen, functional",blood,hematology
+51235,inhibitor screen,blood,hematology
+52093,cd56 absolute count,blood,hematology
+52139,le prep,blood,hematology
+52210,leftshf,blood,hematology
+51270,"protein c, antigen",blood,hematology
+52091,cd52,blood,hematology
+52111,echinocytes,blood,hematology
+51202,factor ii,blood,hematology
+51234,immunophenotyping,blood,hematology
+51255,myelocytes,blood,hematology
+52086,bleed tm,blood,hematology
+52129,hemoglobin other,blood,hematology
+52200,pltdist,blood,hematology
+52206,retflg,blood,hematology
+51208,factor x,blood,hematology
+51226,hemogloblin a,blood,hematology
+52107,drvvt - confirmation,blood,hematology
+52136,inhibitor,blood,hematology
+52786,bleeding time,blood,hematology
+51146,basophils,blood,hematology
+51182,cd41,blood,hematology
+51260,ovalocytes,blood,hematology
+51139,anticardiolipin antibody igm,blood,hematology
+52116,fibrinogen,blood,hematology
+52162,protein s,blood,hematology
+52172,rdw-sd,blood,hematology
+52192,trap stain,blood,hematology
+51210,factor xii,blood,hematology
+51240,large platelets,blood,hematology
+51249,mchc,blood,hematology
+51258,osmotic fragility,blood,hematology
+51281,reptilase time control,blood,hematology
+52068,24 hr,blood,hematology
+52220,wbcp,blood,hematology
+51174,cd3 %,blood,hematology
+51176,"cd3 cells, percent",blood,hematology
+51269,promyelocytes,blood,hematology
+52168,pyruvate kinase,blood,hematology
+51134,acanthocytes,blood,hematology
+51215,fmc-7,blood,hematology
+51264,platelet clumps,blood,hematology
+51283,"reticulocyte count, automated",blood,hematology
+52152,"osmotic fragility, incubated",blood,hematology
+52948,thrombin,blood,hematology
+51162,cd16/56 absolute count,blood,hematology
+51181,cd4/cd8 ratio,blood,hematology
+51203,factor ix,blood,hematology
+51253,monocyte count,blood,hematology
+52071,absolute cd20 count,blood,hematology
+52080,asd,blood,hematology
+52201,pltscat,blood,hematology
+51158,cd14,blood,hematology
+51168,cd20,blood,hematology
+51237,inr(pt),blood,hematology
+51295,tdt,blood,hematology
+52081,asd & na-f,blood,hematology
+52108,drvvt - normalized ratio,blood,hematology
+52150,non-specific esterase,blood,hematology
+52171,rbc morphology,blood,hematology
+51164,cd19,blood,hematology
+51170,cd20 absolute count,blood,hematology
+51231,howell-jolly bodies,blood,hematology
+51278,red blood cell fragments,blood,hematology
+51299,von willebrand factor antigen,blood,hematology
+52094,cd61,blood,hematology
+52124,g6pd spec,blood,hematology
+52185,tcr gamma-delta,blood,hematology
+52212,monoflg,blood,hematology
+52213,nrbcflg,blood,hematology
+52858,fibrin degradation products,blood,hematology
+51157,cd138,blood,hematology
+51171,cd22,blood,hematology
+51179,cd38,blood,hematology
+51133,absolute lymphocyte count,blood,hematology
+51197,elliptocytes,blood,hematology
+51211,factor xiii,blood,hematology
+52164,pt mean,blood,hematology
+52199,fragflg,blood,hematology
+52218,ig flg,blood,hematology
+52840,factor ix,blood,hematology
+51136,alpha antiplasmin,blood,hematology
+51145,basophilic stippling,blood,hematology
+51195,collagen,blood,hematology
+52087,cd15/56,blood,hematology
+52176,rouleaux,blood,hematology
+52202,pltclmp,blood,hematology
+51183,cd45,blood,hematology
+51241,leukocyte alkaline phosphatase,blood,hematology
+52085,bleed tm,blood,hematology
+52101,cr,blood,hematology
+52109,drvvt - screen,blood,hematology
+52128,hemoglobin h inclusion,blood,hematology
+52141,malaria smear,blood,hematology
+52155,periodic acid schiff stain,blood,hematology
+52844,factor vii,blood,hematology
+51185,cd5 %,blood,hematology
+51198,envelope cells,blood,hematology
+51222,hemoglobin,blood,hematology
+51284,"reticulocyte count, manual",blood,hematology
+52184,tcr alpha-beta,blood,hematology
+52193,viii ag,blood,hematology
+51243,lupus anticoagulant,blood,hematology
+51251,metamyelocytes,blood,hematology
+51285,"reticulocyte, cellular hemoglobin",blood,hematology
+52099,clot retraction,blood,hematology
+52132,hit-ab numerical result,blood,hematology
+52177,sct - confirmation,blood,hematology
+52838,factor ii,blood,hematology
+51131,absolute cd4 count,blood,hematology
+51262,pencil cells,blood,hematology
+51265,platelet count,blood,hematology
+52088,cd 1a,blood,hematology
+52089,cd30,blood,hematology
+52161,problem specimen,blood,hematology
+52207,turbhbi,blood,hematology
+52842,factor v,blood,hematology
+51207,factor viii inhibitor,blood,hematology
+51221,hematocrit,blood,hematology
+51223,hemoglobin a2,blood,hematology
+51277,rdw,blood,hematology
+51287,schistocytes,blood,hematology
+51292,spherocytes,blood,hematology
+51298,von willebrand factor activity,blood,hematology
+52125,glutathione,blood,hematology
+52157,plasma hemoglobin,blood,hematology
+52191,tr- acid,blood,hematology
+52214,abnlymp,blood,hematology
+52846,factor viii,blood,hematology
+51130,absolute cd3 count,blood,hematology
+51271,"protein c, functional",blood,hematology
+51302,young cells,blood,hematology
+52069,absolute basophil count,blood,hematology
+52122,fsp,blood,hematology
+52148,neuty,blood,hematology
+52170,rbc,blood,hematology
+52196,wam manual diff,blood,hematology
+52851,factor xi,blood,hematology
+52855,factor xiii,blood,hematology
+51156,cd13,blood,hematology
+51175,cd3 absolute count,blood,hematology
+52097,circ ab,blood,hematology
+52106,donath-l,blood,hematology
+52112,euglobulin lysis,blood,hematology
+52216,blasflg,blood,hematology
+51213,fibrin degradation products,blood,hematology
+51257,nucleated red cells,blood,hematology
+51300,wbc count,blood,hematology
+52075,absolute neutrophil count,blood,hematology
+52105,direct antiplatelet antibodies,blood,hematology
+52123,"g6pd, qualitative",blood,hematology
+52131,hit-ab interpreted result,blood,hematology
+52179,sct - screen,blood,hematology
+51137,anisocytosis,blood,hematology
+51152,cd10,blood,hematology
+51200,eosinophils,blood,hematology
+51266,platelet smear,blood,hematology
+52073,absolute eosinophil count,blood,hematology
+52140,ls,blood,hematology
+52849,factor x,blood,hematology
+51149,bleeding time,blood,hematology
+51236,inpatient hematology/oncology smear,blood,hematology
+51294,target cells,blood,hematology
+51296,teardrop cells,blood,hematology
+52175,ristocetin response,blood,hematology
+52197,wam manual diff 2,blood,hematology
+52198,erytflg,blood,hematology
+51144,bands,blood,hematology
+51218,granulocyte count,blood,hematology
+51232,hypersegmented neutrophils,blood,hematology
+51238,kappa,blood,hematology
+51239,lambda,blood,hematology
+51256,neutrophils,blood,hematology
+51297,thrombin,blood,hematology
+52104,cryoglob,blood,hematology
+52110,dsmear,blood,hematology
+52137,inh scr,blood,hematology
+52180,sta-clot,blood,hematology
+51166,cd19 absolute count,blood,hematology
+51191,cd64,blood,hematology
+51225,hemoglobin f,blood,hematology
+51286,ristocetin,blood,hematology
+51288,sedimentation rate,blood,hematology
+51172,cd23,blood,hematology
+51190,cd59,blood,hematology
+51247,macroovalocytes,blood,hematology
+52133,hmwk,blood,hematology
+52158,plasminogen,blood,hematology
+51165,cd19 %,blood,hematology
+51250,mcv,blood,hematology
+51274,pt,blood,hematology
+51293,sugar water test,blood,hematology
+52078,antithrombin iii,blood,hematology
+52165,ptt control,blood,hematology
+52166,ptt-la,blood,hematology
+51220,heinz body prep,blood,hematology
+51242,luc,blood,hematology
+51263,plasma cells,blood,hematology
+51275,ptt,blood,hematology
+52119,fitzgerld,blood,hematology
+52127,helmet cells,blood,hematology
+52183,sulf hgb,blood,hematology
+51204,factor v,blood,hematology
+51219,h/o smear,blood,hematology
+51261,pappenheimer bodies,blood,hematology
+52167,ptt mea,blood,hematology
+52889,lupus anticoagulant,blood,hematology
+52929,reptilase time,blood,hematology
+52070,absolute cd19 count,blood,hematology
+52114,factor viii antigen,blood,hematology
+52117,"fibrinogen, immunologic",blood,hematology
+52209,eosflg,blood,hematology
+52217,bl/ably,blood,hematology
+51161,cd16,blood,hematology
+51209,factor xi,blood,hematology
+51228,heparin,blood,hematology
+52090,cd42,blood,hematology
+52149,nfletcher,blood,hematology
+52151,nrbc,blood,hematology
+52211,lymflg,blood,hematology
+51159,cd15,blood,hematology
+51193,cd71,blood,hematology
+51216,fragmented cells,blood,hematology
+52079,asa tol,blood,hematology
+52143,methemalb,blood,hematology
+52194,viii-cie,blood,hematology
+51148,blasts,blood,hematology
+51192,cd7,blood,hematology
+51206,factor viii,blood,hematology
+51248,mch,blood,hematology
+51282,"reticulocyte count, absolute",blood,hematology
+51289,serum viscosity,blood,hematology
+51301,white blood cells,blood,hematology
+52074,absolute monocyte count,blood,hematology
+52100,clot time,blood,hematology
+52142,mean platelet volume,blood,hematology
+52923,ptt,blood,hematology
+51173,cd25,blood,hematology
+51194,"cd8 cells, percent",blood,hematology
+51246,macrocytes,blood,hematology
+52076,acid phosphatase stain,blood,hematology
+52121,fletcher,blood,hematology
+52134,ig,blood,hematology
+52403,bile,stool,hematology
+52406,voided specimen,stool,hematology
+52405,prblm,stool,hematology
+52407,wbc,stool,hematology
+51460,"blood, occult",stool,hematology
+52404,fat,stool,hematology
+51476,epithelial cells,urine,hematology
+52425,xucu,urine,hematology
+52423,skip,urine,hematology
+52416,myoglobin,urine,hematology
+51491,ph,urine,hematology
+51479,granular casts,urine,hematology
+51502,trichomonas,urine,hematology
+52424,rfxucu,urine,hematology
+52408,bacturia,urine,hematology
+52419,voided specimen,urine,hematology
+51467,broad casts,urine,hematology
+51477,free fat,urine,hematology
+51483,hyphenated yeast,urine,hematology
+51501,transitional epithelial cells,urine,hematology
+51503,triple phosphate crystals,urine,hematology
+51511,urine fat bodies,urine,hematology
+51474,eosinophils,urine,hematology
+51462,amorphous crystals,urine,hematology
+51465,bilirubin crystals,urine,hematology
+51473,cysteine crystals,urine,hematology
+51509,urine comments,urine,hematology
+51514,urobilinogen,urine,hematology
+51461,ammonium biurate,urine,hematology
+51478,glucose,urine,hematology
+51485,leucine crystals,urine,hematology
+51496,"reducing substances, urine",urine,hematology
+52426,ucu1,urine,hematology
+51510,"urine crystals, other",urine,hematology
+51468,calcium carbonate crystals,urine,hematology
+51463,bacteria,urine,hematology
+51504,tyrosine crystals,urine,hematology
+52418,problem specimen,urine,hematology
+52422,run,urine,hematology
+51464,bilirubin,urine,hematology
+51499,sperm,urine,hematology
+52411,hgb,urine,hematology
+51472,cholesterol crystals,urine,hematology
+51481,hemosiderin,urine,hematology
+51512,urine mucous,urine,hematology
+52412,hpf,urine,hematology
+52413,leuks,urine,hematology
+51508,urine color,urine,hematology
+51482,hyaline casts,urine,hematology
+51489,nonsquamous epithelial cell,urine,hematology
+52410,fatty casts,urine,hematology
+52409,budding yeast,urine,hematology
+51466,blood,urine,hematology
+51488,non-squamous epithelial cells,urine,hematology
+52427,ucu2,urine,hematology
+51487,nitrite,urine,hematology
+51492,protein,urine,hematology
+51500,sulfonamides,urine,hematology
+51498,specific gravity,urine,hematology
+51490,oval fat body,urine,hematology
+52414,leuks,urine,hematology
+51475,epithelial casts,urine,hematology
+51495,rbc clumps,urine,hematology
+51497,renal epithelial cells,urine,hematology
+51484,ketone,urine,hematology
+51517,wbc casts,urine,hematology
+51469,calcium oxalate crystals,urine,hematology
+51493,rbc,urine,hematology
+51505,uric acid crystals,urine,hematology
+51519,yeast,urine,hematology
+51470,calcium phosphate crystals,urine,hematology
+51506,urine appearance,urine,hematology
+52420,zzdummy,urine,hematology
+52421,gate,urine,hematology
+51471,cellular cast,urine,hematology
+51494,rbc casts,urine,hematology
+52415,lpf,urine,hematology
+51513,urine specimen type,urine,hematology
+51515,waxy casts,urine,hematology
+51507,"urine casts, other",urine,hematology
+51516,wbc,urine,hematology
+51518,wbc clumps,urine,hematology
+52417,pku,urine,hematology
+51480,hematocrit,urine,hematology
+51486,leukocytes,urine,hematology
+51127,"rbc, ascites",ascites,hematology
+51113,blasts,ascites,hematology
+52054,histiocyte,ascites,hematology
+52063,polys#,ascites,hematology
+51119,metamyelocytes,ascites,hematology
+51123,other,ascites,hematology
+51117,macrophage,ascites,hematology
+52067,young#,ascites,hematology
+51116,lymphocytes,ascites,hematology
+51125,polys,ascites,hematology
+51110,atypical lymphocytes,ascites,hematology
+52062,plasma#,ascites,hematology
+51118,mesothelial cell,ascites,hematology
+51111,bands,ascites,hematology
+51120,monocytes,ascites,hematology
+52066,voided specimen,ascites,hematology
+52065,"total nucleated cells, ascites",ascites,hematology
+52064,promyelo#,ascites,hematology
+52052,eos#,ascites,hematology
+52051,blasts#,ascites,hematology
+52059,monos#,ascites,hematology
+51126,promyelocytes,ascites,hematology
+51115,"hematocrit, ascites",ascites,hematology
+51114,eosinophils,ascites,hematology
+52055,hyperseg,ascites,hematology
+52061,nuc rbcs#,ascites,hematology
+52053,histio#,ascites,hematology
+52060,myelos#,ascites,hematology
+52048,atyps#,ascites,hematology
+52050,basos#,ascites,hematology
+52057,lymphs#,ascites,hematology
+51112,basophils,ascites,hematology
+52058,metas#,ascites,hematology
+52056,hyperseg#,ascites,hematology
+51122,nucleated rbc,ascites,hematology
+51129,young,ascites,hematology
+51124,plasma,ascites,hematology
+52049,bands#,ascites,hematology
+51121,myelocytes,ascites,hematology
+51448,mesothelial cells,pleural,hematology
+52375,atyps#,pleural,hematology
+52388,plasma#,pleural,hematology
+51453,other,pleural,hematology
+52381,histiocytes,pleural,hematology
+51454,plasma cells,pleural,hematology
+52384,lymphs#,pleural,hematology
+52392,voided specimen,pleural,hematology
+51455,polys,pleural,hematology
+52377,basos#,pleural,hematology
+51449,metamyelocytes,pleural,hematology
+51442,basophils,pleural,hematology
+51440,atypical lymphocytes,pleural,hematology
+51444,eosinophils,pleural,hematology
+52378,blasts#,pleural,hematology
+51457,"rbc, pleural",pleural,hematology
+51441,bands,pleural,hematology
+51450,monos,pleural,hematology
+51445,"hematocrit, pleural",pleural,hematology
+52387,myelos#,pleural,hematology
+52390,promyelocytes#,pleural,hematology
+51452,nrbc,pleural,hematology
+52379,eos#,pleural,hematology
+52382,hypersegmented  neutrophils#,pleural,hematology
+52391,"total nucleated cells, pleural",pleural,hematology
+51443,blasts,pleural,hematology
+51459,young cells,pleural,hematology
+52383,hypersegmented neutrophils,pleural,hematology
+52389,polys#,pleural,hematology
+51456,promyelocytes,pleural,hematology
+51446,lymphocytes,pleural,hematology
+52393,young#,pleural,hematology
+51447,macrophages,pleural,hematology
+51451,myelocytes,pleural,hematology
+52380,histiocyte#,pleural,hematology
+52376,bands#,pleural,hematology
+52385,metas#,pleural,hematology
+53083,nrbc,pleural,hematology
+52386,monos#,pleural,hematology
+51304,cd103,bone marrow,hematology
+51322,cd38,bone marrow,hematology
+52324,cd62,bone marrow,hematology
+51320,cd33,bone marrow,hematology
+52323,cd61,bone marrow,hematology
+52331,tcr alpha-beta,bone marrow,hematology
+51314,cd2,bone marrow,hematology
+51316,cd22,bone marrow,hematology
+51321,cd34,bone marrow,hematology
+51331,cd64,bone marrow,hematology
+52318,asd&na-f,bone marrow,hematology
+52320,cd30,bone marrow,hematology
+51317,cd23,bone marrow,hematology
+51335,fmc-7,bone marrow,hematology
+52325,chloroacetate esterase,bone marrow,hematology
+52317,asd,bone marrow,hematology
+51339,iron stain,bone marrow,hematology
+52328,periodic schiff stain,bone marrow,hematology
+51307,cd13,bone marrow,hematology
+51330,cd59,bone marrow,hematology
+52955,cd10,bone marrow,hematology
+52326,naphthol acetate stain,bone marrow,hematology
+51306,cd11c,bone marrow,hematology
+51324,cd41,bone marrow,hematology
+51308,cd138,bone marrow,hematology
+51328,cd56,bone marrow,hematology
+52333,tr-acid,bone marrow,hematology
+51309,cd14,bone marrow,hematology
+51312,cd16/56,bone marrow,hematology
+52319,cd 1a,bone marrow,hematology
+52316,acid phosphatase stain,bone marrow,hematology
+52992,iron stain,bone marrow,hematology
+51305,cd117,bone marrow,hematology
+51318,cd25,bone marrow,hematology
+51323,cd4,bone marrow,hematology
+51336,glyco a,bone marrow,hematology
+51340,kappa,bone marrow,hematology
+51334,cd8,bone marrow,hematology
+52322,cd52,bone marrow,hematology
+52321,cd42,bone marrow,hematology
+51311,cd16,bone marrow,hematology
+51327,cd55,bone marrow,hematology
+52335,tdt,bone marrow,hematology
+52332,tcr gamma-delta,bone marrow,hematology
+51337,hla-dr,bone marrow,hematology
+52334,voided specimen,bone marrow,hematology
+51303,cd10,bone marrow,hematology
+51333,cd71,bone marrow,hematology
+51338,immunophenotyping,bone marrow,hematology
+51326,cd5,bone marrow,hematology
+51342,wright giemsa,bone marrow,hematology
+52330,sudan black stain,bone marrow,hematology
+51329,cd57,bone marrow,hematology
+51319,cd3,bone marrow,hematology
+51341,lambda,bone marrow,hematology
+51313,cd19,bone marrow,hematology
+52329,peroxidase stain,bone marrow,hematology
+51310,cd15,bone marrow,hematology
+51315,cd20,bone marrow,hematology
+51332,cd7,bone marrow,hematology
+52327,naphthol butryrate,bone marrow,hematology
+51325,cd45,bone marrow,hematology
+52305,myelocytes,joint fluid,hematology
+52300,hypersegmented neutrophils #,joint fluid,hematology
+52311,promyelocytes,joint fluid,hematology
+52295,blasts#,joint fluid,hematology
+51372,"joint crystals, location",joint fluid,hematology
+52302,lymphs#,joint fluid,hematology
+52314,young,joint fluid,hematology
+51366,bands,joint fluid,hematology
+51375,lymphocytes,joint fluid,hematology
+52297,histio#,joint fluid,hematology
+51369,"hematocrit, joint fluid",joint fluid,hematology
+51370,"joint crystals, birefringence",joint fluid,hematology
+52294,blasts,joint fluid,hematology
+52291,atyps#,joint fluid,hematology
+51380,nrbc,joint fluid,hematology
+51383,"rbc, joint fluid",joint fluid,hematology
+52315,young#,joint fluid,hematology
+51376,macrophage,joint fluid,hematology
+52304,monos#,joint fluid,hematology
+52312,"total nucleated cells, joint",joint fluid,hematology
+51379,monocytes,joint fluid,hematology
+51365,atypical lymphocytes,joint fluid,hematology
+51371,"joint crystals, comment",joint fluid,hematology
+52306,myelos#,joint fluid,hematology
+53012,nrbc,joint fluid,hematology
+52298,histiocyte,joint fluid,hematology
+52301,lining cell,joint fluid,hematology
+51377,mesothelial cells,joint fluid,hematology
+52313,voided specimen,joint fluid,hematology
+51367,basophils,joint fluid,hematology
+51378,metamyelocytes,joint fluid,hematology
+52299,hypersegmented neutrophils,joint fluid,hematology
+52308,plasma#,joint fluid,hematology
+51374,"joint crystals, shape",joint fluid,hematology
+52296,eos#,joint fluid,hematology
+52310,promyelo#,joint fluid,hematology
+51373,"joint crystals, number",joint fluid,hematology
+52309,polys#,joint fluid,hematology
+51368,eosinophils,joint fluid,hematology
+52293,basos#,joint fluid,hematology
+51382,polys,joint fluid,hematology
+52307,plasma,joint fluid,hematology
+51381,other,joint fluid,hematology
+52292,bands#,joint fluid,hematology
+52303,metas#,joint fluid,hematology
+51393,cd138,other body fluid,hematology
+52372,young#,other body fluid,hematology
+52367,tcr alpha-beta,other body fluid,hematology
+51391,cd11c,other body fluid,hematology
+51403,cd25,other body fluid,hematology
+51409,cd4/cd8 ratio,other body fluid,hematology
+51396,cd16,other body fluid,hematology
+51389,cd103,other body fluid,hematology
+52339,blasts,other body fluid,hematology
+51394,cd14,other body fluid,hematology
+51398,cd19,other body fluid,hematology
+51399,cd2,other body fluid,hematology
+51427,lymphocytes,other body fluid,hematology
+52340,blasts#,other body fluid,hematology
+52349,chloroac,other body fluid,hematology
+51385,atypical lymphocytes,other body fluid,hematology
+52358,lining cell,other body fluid,hematology
+51432,myelocytes,other body fluid,hematology
+51412,cd5,other body fluid,hematology
+51410,cd41,other body fluid,hematology
+52364,plasma#,other body fluid,hematology
+51413,cd56,other body fluid,hematology
+51421,glyco a,other body fluid,hematology
+52336,atyps#,other body fluid,hematology
+52342,cd30,other body fluid,hematology
+52346,cd59,other body fluid,hematology
+52356,hypersegmented neutrophils#,other body fluid,hematology
+52360,metamyelocytes#,other body fluid,hematology
+51436,polys,other body fluid,hematology
+52350,eos#,other body fluid,hematology
+52359,lymphs#,other body fluid,hematology
+52371,young,other body fluid,hematology
+52355,hypersegmented neutrophils,other body fluid,hematology
+52363,nrbc#,other body fluid,hematology
+52337,bands#,other body fluid,hematology
+51430,metamyelocytes,other body fluid,hematology
+52354,histiocytes,other body fluid,hematology
+52370,voided specimen,other body fluid,hematology
+51408,cd4,other body fluid,hematology
+51422,"hematocrit, other fluid",other body fluid,hematology
+51429,mesothelial cells,other body fluid,hematology
+51434,other cell,other body fluid,hematology
+52353,histiocyte#,other body fluid,hematology
+52365,polys#,other body fluid,hematology
+51401,cd22,other body fluid,hematology
+51428,macrophage,other body fluid,hematology
+51437,promyelocytes,other body fluid,hematology
+51404,cd3,other body fluid,hematology
+51386,bands,other body fluid,hematology
+51417,cd71,other body fluid,hematology
+51424,immunophenotyping,other body fluid,hematology
+51426,lambda,other body fluid,hematology
+52351,fetal hgb,other body fluid,hematology
+51397,cd16/56,other body fluid,hematology
+52373,tdt,other body fluid,hematology
+51388,cd10,other body fluid,hematology
+51402,cd23,other body fluid,hematology
+51418,cd8,other body fluid,hematology
+51400,cd20,other body fluid,hematology
+51405,cd33,other body fluid,hematology
+52345,cd55,other body fluid,hematology
+51416,cd7,other body fluid,hematology
+51420,fmc-7,other body fluid,hematology
+51387,basophils,other body fluid,hematology
+51423,hla-dr,other body fluid,hematology
+52361,monos#,other body fluid,hematology
+51407,cd38,other body fluid,hematology
+51415,cd64,other body fluid,hematology
+51395,cd15,other body fluid,hematology
+52366,promyelocyte#,other body fluid,hematology
+51425,kappa,other body fluid,hematology
+52338,basos#,other body fluid,hematology
+52344,cd52,other body fluid,hematology
+52347,cd61,other body fluid,hematology
+51390,cd117,other body fluid,hematology
+51392,cd13,other body fluid,hematology
+52348,cd62,other body fluid,hematology
+51414,cd57,other body fluid,hematology
+51433,nrbc,other body fluid,hematology
+51438,"rbc, other fluid",other body fluid,hematology
+52362,myelos#,other body fluid,hematology
+51435,plasma,other body fluid,hematology
+52368,tcr gamma-delta,other body fluid,hematology
+51411,cd45,other body fluid,hematology
+51419,eosinophils,other body fluid,hematology
+52357,iron,other body fluid,hematology
+52369,"total nucleated cells, other",other body fluid,hematology
+52374,,other body fluid,hematology
+51431,monos,other body fluid,hematology
+52343,cd42,other body fluid,hematology
+52352,fetal lung maturity - lbc,other body fluid,hematology
+51406,cd34,other body fluid,hematology
+52341,cd 1a,other body fluid,hematology
+52224,bands#,cerebrospinal fluid,hematology
+52274,myelocytes,cerebrospinal fluid,hematology
+52228,blasts#,cerebrospinal fluid,hematology
+52241,delete,cerebrospinal fluid,hematology
+52283,promyelocytes,cerebrospinal fluid,hematology
+52289,young#,cerebrospinal fluid,hematology
+52248,delete,cerebrospinal fluid,hematology
+52258,histiocyte,cerebrospinal fluid,hematology
+52282,polys#,cerebrospinal fluid,hematology
+52244,delete,cerebrospinal fluid,hematology
+52271,metas#,cerebrospinal fluid,hematology
+52226,basos#,cerebrospinal fluid,hematology
+52240,delete,cerebrospinal fluid,hematology
+52269,mesothelial cells #,cerebrospinal fluid,hematology
+52222,atyps#,cerebrospinal fluid,hematology
+52239,delete,cerebrospinal fluid,hematology
+52242,delete,cerebrospinal fluid,hematology
+52279,plasma,cerebrospinal fluid,hematology
+52284,promyelocytes#,cerebrospinal fluid,hematology
+52237,delete,cerebrospinal fluid,hematology
+52288,young,cerebrospinal fluid,hematology
+52223,bands,cerebrospinal fluid,hematology
+52227,blasts,cerebrospinal fluid,hematology
+52254,delete,cerebrospinal fluid,hematology
+52277,nrbc#,cerebrospinal fluid,hematology
+52225,basophils,cerebrospinal fluid,hematology
+52238,delete,cerebrospinal fluid,hematology
+52270,metamyelocytes,cerebrospinal fluid,hematology
+52261,hypersegmented neutrophils #,cerebrospinal fluid,hematology
+52263,lining cell,cerebrospinal fluid,hematology
+52276,nrbc,cerebrospinal fluid,hematology
+52257,"hematocrit, csf",cerebrospinal fluid,hematology
+52260,hypersegmented neutrophils,cerebrospinal fluid,hematology
+52268,mesothelial cells,cerebrospinal fluid,hematology
+52247,delete,cerebrospinal fluid,hematology
+52278,other,cerebrospinal fluid,hematology
+52233,delete,cerebrospinal fluid,hematology
+52236,delete,cerebrospinal fluid,hematology
+52285,"rbc, csf",cerebrospinal fluid,hematology
+52229,delete,cerebrospinal fluid,hematology
+52267,macrophage#,cerebrospinal fluid,hematology
+52255,eos#,cerebrospinal fluid,hematology
+52273,monos#,cerebrospinal fluid,hematology
+52280,plasma#,cerebrospinal fluid,hematology
+52221,atypical lymphocytes,cerebrospinal fluid,hematology
+52234,delete,cerebrospinal fluid,hematology
+52287,voided specimen,cerebrospinal fluid,hematology
+52272,monocytes,cerebrospinal fluid,hematology
+52243,delete,cerebrospinal fluid,hematology
+52250,delete,cerebrospinal fluid,hematology
+52286,"total nucleated cells, csf",cerebrospinal fluid,hematology
+52235,delete,cerebrospinal fluid,hematology
+52246,delete,cerebrospinal fluid,hematology
+52231,delete,cerebrospinal fluid,hematology
+52264,lymphs,cerebrospinal fluid,hematology
+52252,delete,cerebrospinal fluid,hematology
+52230,delete,cerebrospinal fluid,hematology
+52232,delete,cerebrospinal fluid,hematology
+52245,delete,cerebrospinal fluid,hematology
+52253,delete,cerebrospinal fluid,hematology
+52256,eosinophils,cerebrospinal fluid,hematology
+52281,polys,cerebrospinal fluid,hematology
+52249,delete,cerebrospinal fluid,hematology
+52251,delete,cerebrospinal fluid,hematology
+52266,macrophage,cerebrospinal fluid,hematology
+52262,immunophenotyping,cerebrospinal fluid,hematology
+52265,lymphs#,cerebrospinal fluid,hematology

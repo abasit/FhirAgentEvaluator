@@ -1,11 +1,14 @@
 [project]
-name = "green-agent-template"
+name = "fhir-agent-evaluator"
 version = "0.1.0"
-description = "A template for A2A green agents"
+description = "An evaluation for medical agents interacting interacting with FHIR databases for clinical tasks. Based upon MedAgentBench and FHIRAgentBench. "
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "a2a-sdk[http-server]>=0.3.20",
+    "litellm>=1.80.12",
+    "mcp-server>=0.1.4",
+    "pandas>=2.3.3",
     "pydantic>=2.12.5",
     "uvicorn>=0.38.0",
 ]
