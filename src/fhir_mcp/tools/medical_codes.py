@@ -33,10 +33,11 @@ def lookup_medical_code(search_term: str, code_type: str = "items") -> dict:
         search_col = 'label' if code_type in ['items', 'labitems'] else 'long_title'
         results = df[df[search_col].str.contains(search_term, case=False, na=False)]
 
-        logger.debug(f"Cook lookup result: {results}")
+        results = results.to_dict('records')
+        logger.debug(f"Code lookup result: {results}")
         # Convert to dict format
         return {
-            "Codes": results.to_dict('records'),
+            "Codes": results,
         }
     except Exception as e:
         logger.warning(f"Code lookup failed: {e}")

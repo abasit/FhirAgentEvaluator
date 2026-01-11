@@ -1,3 +1,4 @@
+import ast
 import asyncio
 import json
 import logging
@@ -12,10 +13,10 @@ from a2a.types import Message, TaskState, Part, TextPart, DataPart
 from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
-from common.models import EvalRequest, TaskResult, ConversationState
+from common.eval_metrics import retrieval_precision, retrieval_recall, check_answer_correctness
+from common.models import EvalRequest, TaskResult, ConversationState, FHIRAgentBenchResult
 from fhir_mcp import get_mcp_server, verify_tool_access
 from fhir_mcp.tools import get_tool, SUPPORTED_TYPES
-
 
 logger = logging.getLogger("fhir_green_agent")
 
@@ -24,6 +25,7 @@ DEFAULT_NUM_TASKS = None  # None means all tasks
 DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
+DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
 
 RESPOND_ACTION_NAME = "response"
 
@@ -79,6 +81,7 @@ class Agent:
         mcp_enabled = request.config.get("mcp_enabled", DEFAULT_MCP_ENABLED)
         max_iterations = request.config.get("max_iterations", DEFAULT_MAX_ITERATIONS)
         max_concurrent = request.config.get("max_concurrent", DEFAULT_MAX_CONCURRENT)
+        eval_model = DEFAULT_EVAL_MODEL
 
         # Verify tool access
         logger.info(f"Checking tool access")
@@ -114,15 +117,34 @@ class Agent:
             updater=updater,
         )
 
+        time_used = time.time() - start_time
+        logger.info(f"Task execution completed in {time_used:.1f}s")
+
         # Run evaluation
+        await updater.update_status(TaskState.working, new_agent_text_message("Evaluating results..."))
+
+        eval_result = await self._evaluate_results(
+            tasks_df=results_df,
+            eval_model=eval_model,
+            max_concurrent=max_concurrent,
+            time_used=time_used,
+        )
 
         # Report results
+        summary = (
+            f"Evaluation complete:\n"
+            f"- Total tasks: {eval_result.total_tasks}\n"
+            f"- Correct answers: {eval_result.correct_answers} ({eval_result.accuracy * 100:.1f}%)\n"
+            f"- Precision: {eval_result.avg_precision:.4f}\n"
+            f"- Recall: {eval_result.avg_recall:.4f}\n"
+            f"- F1 Score: {eval_result.f1_score:.4f}\n"
+            f"- Time: {eval_result.time_used:.1f}s"
+        )
+
         await updater.add_artifact(
             parts=[
-                Part(root=TextPart(text="The agent performed well.")),
-                Part(root=DataPart(data={
-                    # structured assessment results
-                }))
+                Part(root=TextPart(text=summary)),
+                Part(root=DataPart(data=eval_result.model_dump())),
             ],
             name="Result",
         )
@@ -528,3 +550,139 @@ IMPORTANT: The content for your final message must start with 'The final answer 
         get_mcp_server().log_tool_call(tool_name, tool_args, result)
 
         return result
+
+    async def _evaluate_results(
+            self,
+            tasks_df: pd.DataFrame,
+            time_used: float,
+            eval_model: str,
+            max_concurrent: int,
+    ) -> FHIRAgentBenchResult:
+        eval_df = tasks_df.copy()
+
+        eval_df["true_fhir_ids"] = eval_df["true_fhir_ids"].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) and x else {}
+        )
+
+        logger.info("Calculating retrieval metrics")
+        eval_df = self._calculate_retrieval_metrics(eval_df)
+
+        logger.info("Calculating answer metrics")
+        eval_df = await self._calculate_answer_metrics(eval_df, eval_model, max_concurrent)
+
+        # Update task results with evaluation metrics
+        for idx, row in eval_df.iterrows():
+            result: TaskResult = row["result"]
+            result.correct = int(row.get("answer_correctness", 0))
+            result.precision = row.get("precision")
+            result.recall = row.get("recall")
+
+        # Calculate summary metrics
+        total = len(eval_df)
+        correct = int(eval_df["answer_correctness"].sum())
+        avg_precision = eval_df["precision"].mean()
+        avg_recall = eval_df["recall"].mean()
+        f1 = (
+            2 * (avg_precision * avg_recall) / (avg_precision + avg_recall)
+            if (avg_precision + avg_recall) > 0
+            else 0
+        )
+
+        logger.info(f"Evaluation complete: {correct}/{total} correct ({correct/total*100:.1f}%)")
+        logger.info(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
+
+        return FHIRAgentBenchResult(
+            total_tasks=total,
+            correct_answers=correct,
+            accuracy=correct / total if total > 0 else 0,
+            avg_precision=avg_precision,
+            avg_recall=avg_recall,
+            f1_score=f1,
+            time_used=time_used,
+            task_results=[row["result"] for _, row in eval_df.iterrows()],
+        )
+
+    @staticmethod
+    def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate retrieval precision and recall metrics."""
+
+        # Extract agent's retrieved resource IDs from TaskResult
+        def extract_agent_resource_ids(row) -> list[str]:
+            """Extract FHIR resource IDs from retrieved resources, filtered by true resource types."""
+            result: TaskResult = row["result"]
+            true_fhir_ids: dict = row["true_fhir_ids"]
+
+            if not result or not result.retrieved_fhir_resources:
+                return []
+
+            if not isinstance(true_fhir_ids, dict):
+                return []
+
+            resource_ids = []
+            for resource_type in true_fhir_ids.keys():
+                resources = result.retrieved_fhir_resources.get(resource_type, [])
+                for resource in resources:
+                    if isinstance(resource, dict) and "id" in resource:
+                        resource_ids.append(resource["id"])
+
+            return resource_ids
+
+        eval_df["agent_resource_ids"] = eval_df.apply(extract_agent_resource_ids, axis=1)
+
+        # Flatten true_fhir_ids to list
+        eval_df["true_fhir_ids_list"] = eval_df["true_fhir_ids"].apply(
+            lambda d: sum(d.values(), []) if isinstance(d, dict) else []
+        )
+
+        # Calculate metrics
+        eval_df["recall"] = eval_df.apply(
+            lambda row: retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"]),
+            axis=1
+        )
+        eval_df["precision"] = eval_df.apply(
+            lambda row: retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"]),
+            axis=1
+        )
+
+        logger.info(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
+        logger.info(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
+
+        return eval_df
+
+    @staticmethod
+    async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concurrent: int) -> pd.DataFrame:
+        """Calculate answer correctness using LLM evaluation."""
+        semaphore = asyncio.Semaphore(max_concurrent)
+        total = len(eval_df)
+        completed = 0
+
+        async def check_single_answer(idx: int, row) -> tuple[int, int]:
+            nonlocal completed
+            async with semaphore:
+                result: TaskResult = row["result"]
+
+                if result.error or not result.final_answer:
+                    correctness = 0
+                else:
+                    correctness = await check_answer_correctness(
+                        answer=result.final_answer,
+                        ref_answer=row["true_answer"],
+                        question=row["question"],
+                        model=model,
+                    )
+
+                completed += 1
+                if completed % 10 == 0 or completed == total:
+                    logger.info(f"Answer evaluation: {completed}/{total}")
+
+                return idx, correctness
+
+        tasks = [check_single_answer(idx, row) for idx, row in eval_df.iterrows()]
+        results = await asyncio.gather(*tasks)
+
+        for idx, correctness in results:
+            eval_df.at[idx, "answer_correctness"] = correctness
+
+        logger.info(f"Answer accuracy: {eval_df['answer_correctness'].mean():.4f}")
+
+        return eval_df

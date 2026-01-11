@@ -66,21 +66,14 @@ def fhir_request_get(query_string: str) -> dict:
     logger.debug(f"FHIR GET: {query_string}")
     try:
         client = get_fhir_client()
-        response = client.session.get(f"{client.fhir_store_url}/{query_string}")
-        response.raise_for_status()
 
-
-        all_resources = []
-        if "entry" in response.json():
-            for entry in response.json()["entry"]:
-                all_resources.append(entry["resource"])
+        # Fetch all resources via pagination
+        all_resources = client.search_with_pagination(query_string)
 
         resources_by_type = {}
         for resource in all_resources:
             rt = resource.get("resourceType", "Unknown")
-            if rt not in resources_by_type:
-                resources_by_type[rt] = []
-            resources_by_type[rt].append(resource)
+            resources_by_type.setdefault(rt, []).append(resource)
 
         # Merge into task-scoped storage
         from fhir_mcp import get_mcp_server

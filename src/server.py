@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.WARNING)
 
 logging.getLogger("fhir_green_agent").setLevel(logging.DEBUG)
 logging.getLogger("fhir_mcp").setLevel(logging.DEBUG)
+logging.getLogger("fhir_common").setLevel(logging.DEBUG)
 
 def main():
     parser = argparse.ArgumentParser(description="Run the A2A agent.")
