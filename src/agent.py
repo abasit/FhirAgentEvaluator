@@ -1,4 +1,3 @@
-import ast
 import asyncio
 import json
 import logging
@@ -13,10 +12,11 @@ from a2a.types import Message, TaskState, Part, TextPart, DataPart
 from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
-from common.eval_metrics import retrieval_precision, retrieval_recall, check_answer_correctness
-from common.models import EvalRequest, TaskResult, ConversationState, FHIRAgentBenchResult
-from fhir_mcp import get_mcp_server, verify_tool_access
-from fhir_mcp.tools import get_tool, SUPPORTED_TYPES
+from common.models import EvalRequest, TaskResult, ConversationState
+from common.evaluation import evaluate_results
+from common.prompt_builder import build_task_prompt_messaging, RESPOND_ACTION_NAME, build_task_prompt_mcp
+from common.task_loader import load_tasks, make_result, is_final_answer, parse_agent_response
+from fhir_mcp import verify_tool_access, execute_tool
 
 logger = logging.getLogger("fhir_green_agent")
 
@@ -26,8 +26,6 @@ DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
 DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
-
-RESPOND_ACTION_NAME = "response"
 
 
 class Agent:
@@ -90,7 +88,7 @@ class Agent:
         logger.info(f"Tool access verified")
 
         # Load tasks
-        tasks_df = self._load_tasks(tasks_file, num_tasks)
+        tasks_df = load_tasks(tasks_file, num_tasks)
         total_tasks = len(tasks_df)
 
         await updater.update_status(TaskState.working, new_agent_text_message(f"Loaded {total_tasks} tasks"))
@@ -123,7 +121,7 @@ class Agent:
         # Run evaluation
         await updater.update_status(TaskState.working, new_agent_text_message("Evaluating results..."))
 
-        eval_result = await self._evaluate_results(
+        eval_result = await evaluate_results(
             tasks_df=results_df,
             eval_model=eval_model,
             max_concurrent=max_concurrent,
@@ -264,7 +262,7 @@ class Agent:
         state = ConversationState()
 
         mcp_task_id = str(uuid4())
-        system_prompt = self._build_task_prompt_mcp(mcp_task_id)
+        system_prompt = build_task_prompt_mcp(mcp_task_id)
 
         state.trace.append({"role": "system", "content": system_prompt})
         state.trace.append({"role": "user", "content": question})
@@ -287,15 +285,15 @@ class Agent:
             logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
         except Exception as e:
             logger.error(f"[Task {task_idx}] Communication error: {e}")
-            return self._make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
+            return make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
 
         # Parse response
         try:
-            parsed_response = self._parse_agent_response(response_text)
+            parsed_response = parse_agent_response(response_text)
             logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
         except json.JSONDecodeError as e:
             logger.error(f"[Task {task_idx}] Parse error: {e}")
-            return self._make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
+            return make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
 
         action = parsed_response[0] if parsed_response else {}
         action_name = action.get("name", "").lower()
@@ -304,15 +302,15 @@ class Agent:
         if action_name == RESPOND_ACTION_NAME:
             content = action_kwargs.get("content", "")
 
-            if self._is_final_answer(content):
+            if is_final_answer(content):
                 logger.info(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
-                return self._make_result(state, mcp_task_id, final_answer=content)
+                return make_result(state, mcp_task_id, final_answer=content)
             else:
                 logger.warning(f"[Task {task_idx}] Response without final answer")
-                return self._make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
+                return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
 
         logger.warning(f"[Task {task_idx}] Unknown action: {action_name}")
-        return self._make_result(state, mcp_task_id, error=f"Unknown action: {action_name}")
+        return make_result(state, mcp_task_id, error=f"Unknown action: {action_name}")
 
     async def _run_single_task_messaging(
             self,
@@ -329,7 +327,7 @@ class Agent:
 
         state = ConversationState()
 
-        system_prompt = await self._build_task_prompt_messaging()
+        system_prompt = await build_task_prompt_messaging()
 
         state.trace.append({"role": "system", "content": system_prompt})
         state.trace.append({"role": "user", "content": question})
@@ -358,15 +356,15 @@ class Agent:
                     logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
                 except Exception as e:
                     logger.error(f"[Task {task_idx}] Communication error: {e}")
-                    return self._make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
+                    return make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
 
                 # Parse response
                 try:
-                    parsed_response = self._parse_agent_response(response_text)
+                    parsed_response = parse_agent_response(response_text)
                     logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
                 except json.JSONDecodeError as e:
                     logger.error(f"[Task {task_idx}] Parse error: {e}")
-                    return self._make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
+                    return make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
 
                 action = parsed_response[0] if parsed_response else {}
                 action_name = action.get("name", "").lower()
@@ -375,323 +373,27 @@ class Agent:
                 if action_name == RESPOND_ACTION_NAME:
                     content = action_kwargs.get("content", "")
 
-                    if self._is_final_answer(content):
+                    if is_final_answer(content):
                         logger.info(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
-                        return self._make_result(state, mcp_task_id, final_answer=content)
+                        return make_result(state, mcp_task_id, final_answer=content)
                     else:
                         logger.warning(f"[Task {task_idx}] Response without final answer")
-                        return self._make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
+                        return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
                 else:
                     tool_name, tool_args = action_name, action_kwargs
                     logger.info(f"[Task {task_idx}] Calling tool: {tool_name} with args: {tool_args}")
 
                     try:
-                        tool_output = self._execute_tool(tool_name, tool_args)
+                        tool_output = execute_tool(tool_name, tool_args)
                         tool_output_str = str(tool_output)
                         logger.debug(f"[Task {task_idx}] Tool returned:\n{tool_output_str}")
                         message_content = tool_output_str
                     except Exception as e:
                         logger.error(f"[Task {task_idx}] Tool {tool_name} failed: {e}")
-                        return self._make_result(state, mcp_task_id, error=f"Tool execution failed\n{str(e)}")
+                        return make_result(state, mcp_task_id, error=f"Tool execution failed\n{str(e)}")
 
             logger.warning(f"[Task {task_idx}] Max iterations ({max_iterations}) reached")
-            return self._make_result(state, mcp_task_id, error="Max iterations reached")
+            return make_result(state, mcp_task_id, error="Max iterations reached")
 
         finally:
             current_task_id.reset(token)
-
-    @staticmethod
-    def _build_task_prompt_mcp(mcp_task_id: str) -> str:
-        """
-        Build the system prompt for the purple agent.
-        """
-        mcp_server = get_mcp_server()
-        mcp_url = f"{mcp_server.base_url}/tasks/{mcp_task_id}/mcp"
-
-        return f"""
-Use tools available on the MCP server available at: {mcp_url}
-
-Task instructions:
-    - Always use the Patient FHIR ID provided in context; ignore numeric patient IDs in the question text.
-    - Retrieve only what you need; avoid broad/all-observation pulls (no bulk fetches).
-    - Provide all answers found in the same format as the retrieved data. If you cannot find the answer, clearly say so.
-    - Do not guess attributes and do not repeat the same failing action.
-
-    Response format:
-    - Wrap your response in <json>...</json>.
-    - For final answer use:
-    {{"name": "{RESPOND_ACTION_NAME}", "kwargs": {{"content": "The final answer is: ..."}}}}
-
-    IMPORTANT: The content for your final message must start with 'The final answer is:' followed by your conclusion.
-"""
-
-    @staticmethod
-    async def _build_task_prompt_messaging() -> str:
-        """Build the system prompt with tool descriptions."""
-        mcp_server = get_mcp_server()
-        all_tools = await mcp_server.get_tool_definitions()
-
-        return f"""
-Here's a list of tools you can use (you can use one tool at a time):
-{all_tools}
-
-Available FHIR resource types: {', '.join(SUPPORTED_TYPES)}.
-You can only call on these FHIR resources types for retrieval.
-
-To answer questions about patient data:
-1. Always use the Patient FHIR ID provided in context; do not use the numeric patient ID from the question text.
-2. Use lookup_medical_code to find codes for medical items, labs, and procedures
-3. Use fhir_request_get to get data from the FHIR server
-4. Analyze the retrieved data to answer the question
-
-If there are multiple answers, provide all of them.
-When you provide answers, make sure to provide them in the same format as they are in the retrieved data. If multiple answers are provided, provide them all in a list.
-If you cannot find the answer or relevant patient data, clearly state that you cannot find the information.
-Do not guess attributes; instead, use the provided tool to retrieve the data.
-Do not get stuck or repeat the same action.
-
-Please respond in the JSON format. Please wrap the JSON part with <json>...</json> tags.
-The JSON can be either a single action or a list of actions.
-
-Tool Call:
-{{"name": "tool_name", "kwargs": {{"arg": "value"}}}}
-
-For final response:
-{{"name": "{RESPOND_ACTION_NAME}", "kwargs": {{"content": "The final answer is: ..."}}}}
-
-IMPORTANT: The content for your final message must start with 'The final answer is:' followed by your conclusion. This is required for proper processing.
-"""
-
-    @staticmethod
-    def _make_result(
-            state: ConversationState,
-            mcp_task_id: str,
-            final_answer: str = None,
-            error: str = None,
-    ) -> TaskResult:
-        mcp_server = get_mcp_server()
-
-        retrieved_resources = mcp_server.get_task_resources(mcp_task_id)
-
-        # Collect resource IDs by type
-        retrieved_resource_ids = {}
-        for resource_type, resources in retrieved_resources.items():
-            ids = []
-            for resource in resources:
-                if isinstance(resource, dict) and "id" in resource:
-                    ids.append(resource["id"])
-            if ids:
-                retrieved_resource_ids[resource_type] = ids
-
-        result = TaskResult(
-            final_answer=final_answer,
-            tools_used=mcp_server.get_tool_logs(mcp_task_id),
-            retrieved_fhir_resources=retrieved_resource_ids,
-            trace=state.trace,
-            iterations=state.iterations,
-            error=error,
-        )
-
-        mcp_server.clear_task(mcp_task_id)
-
-        return result
-
-    @staticmethod
-    def _load_tasks(tasks_file: str, num_tasks: int = None) -> pd.DataFrame:
-        """Load tasks from file."""
-        tasks_df = pd.read_csv(tasks_file)[
-            ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids"]
-        ]
-
-        if num_tasks is not None:
-            tasks_df = tasks_df[:num_tasks].copy()
-
-        # Add question_with_context
-        def create_input_str(row):
-            input_str = f"Question: {row['question']}\nContext:"
-            input_str += f"\nPatient FHIR ID is {row['patient_fhir_id']}."
-            if pd.notnull(row['assumption']):
-                input_str += f"\n{row['assumption']}"
-            return input_str
-
-        tasks_df["question_with_context"] = tasks_df.apply(create_input_str, axis=1)
-
-        return tasks_df
-
-    @staticmethod
-    def _parse_agent_response(response_text: str) -> list:
-        import re
-
-        json_str = None
-        match = re.search(r'<json>\s*(.*?)\s*</json>', response_text, re.DOTALL)
-        if match:
-            json_str = match.group(1)
-        else:
-            match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-            if match:
-                json_str = match.group(1)
-            else:
-                match = re.search(r'```\s*(.*?)\s*```', response_text, re.DOTALL)
-                if match:
-                    json_str = match.group(1)
-
-        if json_str:
-            parsed = json.loads(json_str)
-        else:
-            parsed = json.loads(response_text)
-
-        if isinstance(parsed, list):
-            return parsed
-        else:
-            return [parsed]
-
-    @staticmethod
-    def _is_final_answer(content: str) -> bool:
-        if not content:
-            return False
-        return "the final answer is:" in content.lower().strip()
-
-    @staticmethod
-    def _execute_tool(tool_name: str, tool_args: dict) -> dict:
-        tool_function = get_tool(tool_name)
-        result = tool_function(**tool_args)
-
-        # Log the tool call (uses current_task_id context)
-        get_mcp_server().log_tool_call(tool_name, tool_args, result)
-
-        return result
-
-    async def _evaluate_results(
-            self,
-            tasks_df: pd.DataFrame,
-            time_used: float,
-            eval_model: str,
-            max_concurrent: int,
-    ) -> FHIRAgentBenchResult:
-        eval_df = tasks_df.copy()
-
-        eval_df["true_fhir_ids"] = eval_df["true_fhir_ids"].apply(
-            lambda x: ast.literal_eval(x) if isinstance(x, str) and x else {}
-        )
-
-        logger.info("Calculating retrieval metrics")
-        eval_df = self._calculate_retrieval_metrics(eval_df)
-
-        logger.info("Calculating answer metrics")
-        eval_df = await self._calculate_answer_metrics(eval_df, eval_model, max_concurrent)
-
-        # Update task results with evaluation metrics
-        for idx, row in eval_df.iterrows():
-            result: TaskResult = row["result"]
-            result.true_answer = row["true_answer"]
-            result.correct = int(row.get("answer_correctness", 0))
-            result.precision = row.get("precision")
-            result.recall = row.get("recall")
-
-        # Calculate summary metrics
-        total = len(eval_df)
-        correct = int(eval_df["answer_correctness"].sum())
-        avg_precision = eval_df["precision"].mean()
-        avg_recall = eval_df["recall"].mean()
-        f1 = (
-            2 * (avg_precision * avg_recall) / (avg_precision + avg_recall)
-            if (avg_precision + avg_recall) > 0
-            else 0
-        )
-
-        logger.info(f"Evaluation complete: {correct}/{total} correct ({correct/total*100:.1f}%)")
-        logger.info(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
-
-        return FHIRAgentBenchResult(
-            total_tasks=total,
-            correct_answers=correct,
-            accuracy=correct / total if total > 0 else 0,
-            avg_precision=avg_precision,
-            avg_recall=avg_recall,
-            f1_score=f1,
-            time_used=time_used,
-            task_results=[row["result"] for _, row in eval_df.iterrows()],
-        )
-
-    @staticmethod
-    def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
-        """Calculate retrieval precision and recall metrics."""
-
-        # Extract agent's retrieved resource IDs from TaskResult
-        def extract_agent_resource_ids(row) -> list[str]:
-            """Extract FHIR resource IDs from retrieved resources, filtered by true resource types."""
-            result: TaskResult = row["result"]
-            true_fhir_ids: dict = row["true_fhir_ids"]
-
-            if not result or not result.retrieved_fhir_resources:
-                return []
-
-            if not isinstance(true_fhir_ids, dict):
-                return []
-
-            resource_ids = []
-            for resource_type in true_fhir_ids.keys():
-                ids = result.retrieved_fhir_resources.get(resource_type, [])
-                resource_ids.extend(ids)
-
-            return resource_ids
-
-        eval_df["agent_resource_ids"] = eval_df.apply(extract_agent_resource_ids, axis=1)
-
-        # Flatten true_fhir_ids to list
-        eval_df["true_fhir_ids_list"] = eval_df["true_fhir_ids"].apply(
-            lambda d: sum(d.values(), []) if isinstance(d, dict) else []
-        )
-
-        # Calculate metrics
-        eval_df["recall"] = eval_df.apply(
-            lambda row: retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"]),
-            axis=1
-        )
-        eval_df["precision"] = eval_df.apply(
-            lambda row: retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"]),
-            axis=1
-        )
-
-        logger.info(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
-        logger.info(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
-
-        return eval_df
-
-    @staticmethod
-    async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concurrent: int) -> pd.DataFrame:
-        """Calculate answer correctness using LLM evaluation."""
-        semaphore = asyncio.Semaphore(max_concurrent)
-        total = len(eval_df)
-        completed = 0
-
-        async def check_single_answer(idx: int, row) -> tuple[int, int]:
-            nonlocal completed
-            async with semaphore:
-                result: TaskResult = row["result"]
-
-                if result.error or not result.final_answer:
-                    correctness = 0
-                else:
-                    correctness = await check_answer_correctness(
-                        answer=result.final_answer,
-                        ref_answer=row["true_answer"],
-                        question=row["question"],
-                        model=model,
-                    )
-
-                completed += 1
-                if completed % 10 == 0 or completed == total:
-                    logger.info(f"Answer evaluation progress: {completed}/{total}")
-
-                return idx, correctness
-
-        tasks = [check_single_answer(idx, row) for idx, row in eval_df.iterrows()]
-        results = await asyncio.gather(*tasks)
-
-        for idx, correctness in results:
-            eval_df.at[idx, "answer_correctness"] = correctness
-
-        logger.info(f"Answer accuracy: {eval_df['answer_correctness'].mean():.4f}")
-
-        return eval_df

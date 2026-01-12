@@ -53,7 +53,7 @@ def normalize_retrieved_resources(resources: dict) -> dict:
     return normalized
 
 
-def execute_python_code(code: str, global_vars: dict = None) -> dict:
+def execute_python_code(code: str) -> dict:
     """
     Execute Python code with access to retrieved FHIR resources.
 
@@ -95,9 +95,6 @@ def execute_python_code(code: str, global_vars: dict = None) -> dict:
         - Use try/except in your code for robust error handling
     """
     logger.debug(f"Executing code:\n{code}")
-
-    if global_vars is None:
-        global_vars = {}
 
     try:
         # Add common imports and the retrieved resources to global scope

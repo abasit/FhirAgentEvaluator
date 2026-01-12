@@ -106,12 +106,6 @@ def fhir_request_post(resource: dict) -> dict:
     Args:
         resource: FHIR resource the agent intends to create/update.
             Must include "resourceType" field.
-            Example:
-            {
-                "resourceType": "MedicationRequest",
-                "subject": {"reference": "Patient/123"},
-                "medicationCodeableConcept": {...}
-            }
 
     Returns:
         dict: Acknowledgement of the recorded operation.

@@ -14,15 +14,15 @@ Available tools:
 
 from .fhir_tools import SUPPORTED_TYPES, fhir_request_get, fhir_request_post
 from .medical_codes import lookup_medical_code
-from .drug_interactions import analyze_drug_interactions
 from .python_executor import execute_python_code
+from .drug_labels import get_fda_drug_labels
 
 TOOL_REGISTRY = {
     "fhir_request_get": fhir_request_get,
     "fhir_request_post": fhir_request_post,
     "lookup_medical_code": lookup_medical_code,
-    "analyze_drug_interactions": analyze_drug_interactions,
     "execute_python_code": execute_python_code,
+    "get_fda_drug_labels": get_fda_drug_labels
 }
 
 def get_tool(name: str):
