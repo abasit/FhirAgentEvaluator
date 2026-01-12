@@ -65,6 +65,8 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
     )
+    import warnings
+    warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 
     result = response.choices[0].message.content.strip()
 

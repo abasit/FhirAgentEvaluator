@@ -322,11 +322,12 @@ class Agent:
             max_iterations: int,
     ) -> TaskResult:
         """Run a single task in messaging mode - iterative tool calls."""
+        # Set task context for the entire task
         from fhir_mcp.server import current_task_id
+        mcp_task_id = str(uuid4())
+        token = current_task_id.set(mcp_task_id)
 
         state = ConversationState()
-        mcp_server = get_mcp_server()
-        mcp_task_id = str(uuid4())
 
         system_prompt = await self._build_task_prompt_messaging()
 
@@ -335,9 +336,6 @@ class Agent:
 
         message_content = f"{system_prompt}\n\n{question}"
         is_first_message = True
-
-        # Set task context for the entire task
-        token = current_task_id.set(mcp_task_id)
 
         try:
             while state.iterations < max_iterations:
@@ -473,10 +471,22 @@ IMPORTANT: The content for your final message must start with 'The final answer 
     ) -> TaskResult:
         mcp_server = get_mcp_server()
 
+        retrieved_resources = mcp_server.get_task_resources(mcp_task_id)
+
+        # Collect resource IDs by type
+        retrieved_resource_ids = {}
+        for resource_type, resources in retrieved_resources.items():
+            ids = []
+            for resource in resources:
+                if isinstance(resource, dict) and "id" in resource:
+                    ids.append(resource["id"])
+            if ids:
+                retrieved_resource_ids[resource_type] = ids
+
         result = TaskResult(
             final_answer=final_answer,
             tools_used=mcp_server.get_tool_logs(mcp_task_id),
-            retrieved_fhir_resources=mcp_server.get_task_resources(mcp_task_id),
+            retrieved_fhir_resources=retrieved_resource_ids,
             trace=state.trace,
             iterations=state.iterations,
             error=error,
@@ -573,6 +583,7 @@ IMPORTANT: The content for your final message must start with 'The final answer 
         # Update task results with evaluation metrics
         for idx, row in eval_df.iterrows():
             result: TaskResult = row["result"]
+            result.true_answer = row["true_answer"]
             result.correct = int(row.get("answer_correctness", 0))
             result.precision = row.get("precision")
             result.recall = row.get("recall")
@@ -620,10 +631,8 @@ IMPORTANT: The content for your final message must start with 'The final answer 
 
             resource_ids = []
             for resource_type in true_fhir_ids.keys():
-                resources = result.retrieved_fhir_resources.get(resource_type, [])
-                for resource in resources:
-                    if isinstance(resource, dict) and "id" in resource:
-                        resource_ids.append(resource["id"])
+                ids = result.retrieved_fhir_resources.get(resource_type, [])
+                resource_ids.extend(ids)
 
             return resource_ids
 
@@ -673,7 +682,7 @@ IMPORTANT: The content for your final message must start with 'The final answer 
 
                 completed += 1
                 if completed % 10 == 0 or completed == total:
-                    logger.info(f"Answer evaluation: {completed}/{total}")
+                    logger.info(f"Answer evaluation progress: {completed}/{total}")
 
                 return idx, correctness
 

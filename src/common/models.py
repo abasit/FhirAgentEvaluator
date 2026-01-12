@@ -23,6 +23,7 @@ class TaskResult(BaseModel):
     error: Optional[str] = None
 
     # Evaluation metrics (populated after evaluation)
+    true_answer: Optional[str] = None
     correct: Optional[int] = None  # 0 or 1
     precision: Optional[float] = None
     recall: Optional[float] = None

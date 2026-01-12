@@ -33,12 +33,18 @@ def lookup_medical_code(search_term: str, code_type: str = "items") -> dict:
         search_col = 'label' if code_type in ['items', 'labitems'] else 'long_title'
         results = df[df[search_col].str.contains(search_term, case=False, na=False)]
 
-        results = results.to_dict('records')
+        results = {
+            "Codes": results.to_dict('records'),
+        }
+
+        # Merge into task-scoped storage
+        from fhir_mcp import get_mcp_server
+        mcp_server = get_mcp_server()
+        mcp_server.merge_task_resources(results)
+
         logger.debug(f"Code lookup result: {results}")
         # Convert to dict format
-        return {
-            "Codes": results,
-        }
+        return results
     except Exception as e:
         logger.warning(f"Code lookup failed: {e}")
         return {"error": str(e)}
