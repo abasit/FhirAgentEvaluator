@@ -12,7 +12,7 @@ Available tools:
 - execute_python_code: Execute Python code with access to retrieved FHIR resources
 """
 
-from .fhir_tools import SUPPORTED_TYPES, fhir_request_get, fhir_request_post
+from .fhir_tools import FHIR_SCHEMA, fhir_request_get, fhir_request_post
 from .medical_codes import lookup_medical_code
 from .python_executor import execute_python_code
 from .drug_labels import get_fda_drug_labels

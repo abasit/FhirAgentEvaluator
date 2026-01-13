@@ -3,6 +3,7 @@ import asyncio
 import logging
 
 import pandas as pd
+from dateutil import parser as date_parser
 
 from common.eval_metrics import retrieval_recall, retrieval_precision, check_answer_correctness
 from common.models import FHIRAgentBenchResult, TaskResult
@@ -22,9 +23,9 @@ async def evaluate_results(
     eval_df["true_fhir_ids"] = eval_df["true_fhir_ids"].apply(
         lambda x: ast.literal_eval(x) if isinstance(x, str) and x else {}
     )
-    # eval_df["expected_actions"] = eval_df["expected_actions"].apply(
-    #     lambda x: ast.literal_eval(x) if isinstance(x, str) and x else []
-    # )
+    eval_df["expected_actions"] = eval_df["expected_actions"].apply(
+        lambda x: ast.literal_eval(x) if isinstance(x, str) and x else []
+    )
 
     logger.info("Calculating retrieval metrics")
     eval_df = _calculate_retrieval_metrics(eval_df)
@@ -69,41 +70,40 @@ async def evaluate_results(
 def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
     """Calculate retrieval precision and recall metrics."""
 
-    # Extract agent's retrieved resource IDs from TaskResult
     def extract_agent_resource_ids(row) -> list[str]:
-        """Extract FHIR resource IDs from retrieved resources, filtered by true resource types."""
+        """Extract FHIR resource IDs filtered by true resource types."""
         result: TaskResult = row["result"]
         true_fhir_ids: dict = row["true_fhir_ids"]
 
         if not result or not result.retrieved_fhir_resources:
             return []
-
         if not isinstance(true_fhir_ids, dict):
             return []
 
         resource_ids = []
         for resource_type in true_fhir_ids.keys():
-            ids = result.retrieved_fhir_resources.get(resource_type, [])
-            resource_ids.extend(ids)
-
+            resource_ids.extend(result.retrieved_fhir_resources.get(resource_type, []))
         return resource_ids
 
     eval_df["agent_resource_ids"] = eval_df.apply(extract_agent_resource_ids, axis=1)
-
-    # Flatten true_fhir_ids to list
     eval_df["true_fhir_ids_list"] = eval_df["true_fhir_ids"].apply(
         lambda d: sum(d.values(), []) if isinstance(d, dict) else []
     )
 
-    # Calculate metrics
-    eval_df["recall"] = eval_df.apply(
-        lambda row: retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"]),
-        axis=1
-    )
-    eval_df["precision"] = eval_df.apply(
-        lambda row: retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"]),
-        axis=1
-    )
+    def calc_recall(row):
+        # No retrieval expected - exclude from metrics
+        if not row["true_fhir_ids_list"]:
+            return None
+        return retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"])
+
+    def calc_precision(row):
+        # No retrieval expected - exclude from metrics
+        if not row["true_fhir_ids_list"]:
+            return None
+        return retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"])
+
+    eval_df["recall"] = eval_df.apply(calc_recall, axis=1)
+    eval_df["precision"] = eval_df.apply(calc_precision, axis=1)
 
     logger.info(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
     logger.info(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
@@ -121,21 +121,36 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
         nonlocal completed
         async with semaphore:
             result: TaskResult = row["result"]
+            task_type = row.get("task_type", "")
+            expected_actions = row.get("expected_actions", [])
 
-            # Action tasks - evaluate POST payloads
-            if row.get("task_type") == "action":
-                expected_actions = row.get("expected_actions", [])
-                correctness = _evaluate_action_task(expected_actions, result)
-            # Regular tasks - LLM evaluation
-            elif result.error or not result.final_answer:
-                correctness = 0
+            # Check action tasks
+            if task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
+                action_correct = _evaluate_action_task(expected_actions, result)
+                if not action_correct:
+                    correctness = 0
+                elif task_type == "medagentbench_action":
+                    correctness = 0 if result.error else 1
+                elif result.error or not result.final_answer:
+                    correctness = 0
+                else:
+                    correctness = await check_answer_correctness(
+                        answer=result.final_answer,
+                        ref_answer=str(row["true_answer"]),
+                        question=row["question"],
+                        model=model,
+                    )
             else:
-                correctness = await check_answer_correctness(
-                    answer=result.final_answer,
-                    ref_answer=row["true_answer"],
-                    question=row["question"],
-                    model=model,
-                )
+                # Retrieval-only tasks (FHIRAgentBench, MedicationConflict)
+                if result.error or not result.final_answer:
+                    correctness = 0
+                else:
+                    correctness = await check_answer_correctness(
+                        answer=result.final_answer,
+                        ref_answer=row["true_answer"],
+                        question=row["question"],
+                        model=model,
+                    )
 
             completed += 1
             if completed % 10 == 0 or completed == total:
@@ -155,68 +170,78 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
 
 
 def _evaluate_action_task(expected_actions: list, task_result: TaskResult) -> int:
-    """Evaluate action tasks by checking POST payloads. Returns 1 if correct, 0 if not."""
-    if not expected_actions:
-        return 1  # No expected actions, nothing to check
-
-    # Get actual POST calls from tools_used
-    actual_posts = [
-        t["args"].get("resource", {})
-        for t in task_result.tools_used
-        if t["tool"] == "fhir_request_post"
+    """Check if POST requests match expected actions."""
+    post_requests = [
+        t["args"] for t in task_result.tools_used
+        if t.get("tool") == "fhir_request_post"
     ]
 
-    if len(actual_posts) != len(expected_actions):
-        logger.debug(f"Expected {len(expected_actions)} POST(s), got {len(actual_posts)}")
+    if not expected_actions:
+        return 1 if not post_requests else 0
+
+    if len(post_requests) != len(expected_actions):
+        logger.debug(f"POST count mismatch: got {len(post_requests)}, expected {len(expected_actions)}")
         return 0
 
-    # Check each expected action has a matching actual POST
     for expected in expected_actions:
-        required = expected["required_fields"]
-
-        matched = any(_payloads_match(actual, required) for actual in actual_posts)
-        if not matched:
-            logger.debug(f"No matching POST for expected: {required.get('code')}")
+        found = any(
+            actual.get("resource_type") == expected.get("resource_type")
+            and _dict_match(actual.get("params", {}), expected.get("params", {}))
+            for actual in post_requests
+        )
+        if not found:
+            logger.debug(f"No matching POST for expected: {expected}")
             return 0
 
     return 1
 
 
-def _payloads_match(actual: dict, expected: dict) -> bool:
-    """Check if actual payload matches expected, with some leniency."""
-    for key, expected_value in expected.items():
-        actual_value = actual.get(key)
-        if not _values_match(actual_value, expected_value):
+def _dict_match(actual: dict, expected: dict) -> bool:
+    """Check if actual dict contains all expected keys with matching values."""
+    for key, expected_val in expected.items():
+        if key == "note_contains":
+            actual_key = "note"
+        else:
+            actual_key = key
+        if not _values_match(actual.get(actual_key), expected_val, field_name=key):
+            logger.debug(f"Mismatch for {key}: got {actual.get(actual_key)}, expected {expected_val}")
             return False
     return True
 
 
-def _values_match(actual, expected) -> bool:
+def _values_match(actual, expected, field_name: str = None) -> bool:
     """Compare values with leniency for formats."""
     if actual == expected:
         return True
-
     if actual is None or expected is None:
         return False
 
-    # Numeric comparison (82 == 82.0)
+    # note_contains: check all substrings are present
+    if field_name == "note_contains" and isinstance(expected, list) and isinstance(actual, str):
+        return all(substring in actual for substring in expected)
+
+    # note: contains match
+    if field_name == "note" and isinstance(expected, str) and isinstance(actual, str):
+        return expected in actual
+
+    # Numeric comparison
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float)):
         return float(actual) == float(expected)
 
-    # String comparison - try datetime first, then strip whitespace
+    # String comparison - try datetime first
     if isinstance(expected, str) and isinstance(actual, str):
-        # Try datetime comparison
         try:
-            from dateutil import parser
-            return parser.isoparse(actual) == parser.isoparse(expected)
+            actual_dt = date_parser.parse(actual)
+            expected_dt = date_parser.parse(expected)
+            # Compare without timezone (strip tzinfo)
+            return actual_dt.replace(tzinfo=None) == expected_dt.replace(tzinfo=None)
         except (ValueError, TypeError):
             pass
-        # Fall back to stripped string comparison
         return actual.strip() == expected.strip()
 
     # Recursive for dicts
     if isinstance(expected, dict) and isinstance(actual, dict):
-        return _payloads_match(actual, expected)
+        return _dict_match(actual, expected)
 
     # Recursive for lists
     if isinstance(expected, list) and isinstance(actual, list):

@@ -9,18 +9,18 @@ from fhir_mcp import get_mcp_server
 logger = logging.getLogger("fhir_green_agent.evaluation")
 
 
-def load_tasks(tasks_file: str, num_tasks: int = None) -> pd.DataFrame:
+def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
     """Load tasks from file."""
     tasks_df = pd.read_csv(tasks_file)[
         # For FHIR-Agent-Bench
         # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids"]
         # For drug interaction
-        ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "current_medications"]
+        # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "current_medications"]
         # For MedAgentBench
-        # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "task_type", "expected_actions"]
+        ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "task_type", "expected_actions"]
     ]
 
-    if num_tasks is not None:
+    if num_tasks:
         tasks_df = tasks_df[:num_tasks].copy()
 
     # Add question_with_context

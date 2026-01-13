@@ -57,9 +57,9 @@ def execute_python_code(code: str) -> dict:
     """
     Execute Python code with access to retrieved FHIR resources.
 
-    The code has access to all FHIR resources fetched via fhir_request_get
-    in the current task, available as `retrieved_resources`. The code must
-    set an `answer` variable with the final result.
+    The variable `retrieved_resources` contains all FHIR data fetched via
+    fhir_request_get in the current task. Set an `answer` variable with
+    the final result.
 
     Args:
         code: Python code to execute.
@@ -71,28 +71,11 @@ def execute_python_code(code: str) -> dict:
             '''
 
     Returns:
-        dict: Execution result.
-            On success:
-            {
-                "answer": <value of answer variable>
-            }
-            On failure or no answer set:
-            {
-                "error": "<error message>"
-            }
+        dict: {"answer": <value>} on success, {"error": "<message>"} on failure.
 
-    Available globals:
-        - retrieved_resources: dict mapping resource types to lists of FHIR resources
-        - json: JSON module for parsing/serialization
-        - re: Regular expressions module
-        - datetime: Date/time module
-        - math: Math module
-        - statistics: Statistics module
-
-    Notes:
-        - Always set the `answer` variable with your final result
-        - Resources accumulate across multiple fhir_request_get calls
-        - Use try/except in your code for robust error handling
+    Available:
+        - retrieved_resources: dict of resource_type -> list of FHIR resources
+        - json, re, datetime, math, statistics modules
     """
     logger.debug(f"Executing code:\n{code}")
 

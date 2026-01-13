@@ -182,6 +182,17 @@ class MCPServer:
         tools = [tool.model_dump(mode="json", exclude_none=True) for tool in tools]
         return json.dumps(tools, indent=2)
 
+    def get_mcp_url(self, mcp_task_id: str) -> str:
+        """
+        Get the task specific MCP URL.
+
+        Used by green agent to include mcp url in prompt
+        for MCP agent.
+
+        Returns:
+            url string
+        """
+        return f"{self.base_url}/tasks/{mcp_task_id}/mcp"
 
 class TaskScopedMCP:
     """

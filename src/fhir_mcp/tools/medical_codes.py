@@ -17,10 +17,21 @@ CODE_TABLES = {
     'labitems': pd.read_csv(os.path.join(CODES_DIR, "d_labitems.csv"))
 }
 
-def lookup_medical_code(search_term: str, code_type: str = "items") -> dict:
-    """    Search local code tables (items, labitems, diagnoses, procedures) by term.
-    - Input: search_term (free text), code_type in {items, labitems, diagnoses, procedures}
-    - Output: dict with "Codes": list of matching rows from the table
+
+def lookup_medical_code(search_term: str, code_type: str) -> dict:
+    """
+    Search local code tables by term.
+
+    Args:
+        search_term: Free text search term (e.g., "magnesium", "heart rate")
+        code_type: Table to search:
+            - "labitems": Laboratory tests (e.g., potassium, glucose, hemoglobin)
+            - "items": Chart events (vitals, measurements, inputs)
+            - "diagnoses": ICD diagnosis codes
+            - "procedures": ICD procedure codes
+
+    Returns:
+        dict with "codes": list of {"code": "<code>", "display": "<name>"}
     """
     try:
         logger.debug(f"Looking up medical code {search_term} of type {code_type}")
@@ -31,11 +42,16 @@ def lookup_medical_code(search_term: str, code_type: str = "items") -> dict:
 
         # Search in label column (or long_title for ICD codes)
         search_col = 'label' if code_type in ['items', 'labitems'] else 'long_title'
-        results = df[df[search_col].str.contains(search_term, case=False, na=False)]
+        matches = df[df[search_col].str.contains(search_term, case=False, na=False)]
 
-        results = {
-            "Codes": results.to_dict('records'),
-        }
+        # Standardize output format
+        code_col = 'itemid' if code_type in ['items', 'labitems'] else 'icd_code'
+        codes = [
+            {"code": str(row[code_col]), "display": row[search_col]}
+            for _, row in matches.iterrows()
+        ]
+
+        results = {"codes": codes}
 
         # Merge into task-scoped storage
         from fhir_mcp import get_mcp_server
@@ -43,8 +59,7 @@ def lookup_medical_code(search_term: str, code_type: str = "items") -> dict:
         mcp_server.merge_task_resources(results)
 
         logger.debug(f"Code lookup result: {results}")
-        # Convert to dict format
         return results
     except Exception as e:
         logger.warning(f"Code lookup failed: {e}")
-        return {"error": str(e)}
+        return {"error": "Code lookup failed"}

@@ -16,9 +16,9 @@ from fhir_mcp import init_mcp_server
 # Configure logging
 logging.basicConfig(level=logging.WARNING)
 
-logging.getLogger("fhir_green_agent").setLevel(logging.DEBUG)
-logging.getLogger("fhir_mcp").setLevel(logging.DEBUG)
-logging.getLogger("fhir_common").setLevel(logging.DEBUG)
+logging.getLogger("fhir_green_agent").setLevel(logging.INFO)
+logging.getLogger("fhir_mcp").setLevel(logging.INFO)
+logging.getLogger("fhir_common").setLevel(logging.INFO)
 
 def main():
     parser = argparse.ArgumentParser(description="Run the A2A agent.")

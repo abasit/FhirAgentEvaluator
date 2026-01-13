@@ -2,10 +2,11 @@ import asyncio
 import json
 import logging
 import time
-from uuid import uuid4
+import warnings
 
 import pandas as pd
 from pydantic import ValidationError
+from uuid import uuid4
 
 from a2a.server.tasks import TaskUpdater
 from a2a.types import Message, TaskState, Part, TextPart, DataPart
@@ -18,10 +19,14 @@ from common.prompt_builder import build_task_prompt_messaging, RESPOND_ACTION_NA
 from common.task_loader import load_tasks, make_result, is_final_answer, parse_agent_response
 from fhir_mcp import verify_tool_access, execute_tool
 
+warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 logger = logging.getLogger("fhir_green_agent")
 
+
+
+
 DEFAULT_TASKS_FILE = "data/fhiragentbench_tasks.csv"
-DEFAULT_NUM_TASKS = None  # None means all tasks
+DEFAULT_NUM_TASKS = 0  # 0 means all tasks
 DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
@@ -181,6 +186,7 @@ class Agent:
                     max_iterations=max_iterations,
                     mcp_enabled=mcp_enabled,
                 )
+                result.question_id = task.question_id
 
                 elapsed = time.time() - task_start
                 if result and result.error:
@@ -264,8 +270,7 @@ class Agent:
         mcp_task_id = str(uuid4())
         system_prompt = build_task_prompt_mcp(mcp_task_id)
 
-        state.trace.append({"role": "system", "content": system_prompt})
-        state.trace.append({"role": "user", "content": question})
+        state.trace.append({"role": "task prompt", "content": question})
 
         message_content = f"{system_prompt}\n\n{question}"
 
@@ -285,7 +290,7 @@ class Agent:
             logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
         except Exception as e:
             logger.error(f"[Task {task_idx}] Communication error: {e}")
-            return make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
+            return make_result(state, mcp_task_id, error=f"Error communicating with purple agent")
 
         # Parse response
         try:
@@ -293,7 +298,7 @@ class Agent:
             logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
         except json.JSONDecodeError as e:
             logger.error(f"[Task {task_idx}] Parse error: {e}")
-            return make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
+            return make_result(state, mcp_task_id, error=f"Failed to parse purple agent response:\n{response_text}")
 
         action = parsed_response[0] if parsed_response else {}
         action_name = action.get("name", "").lower()
@@ -329,8 +334,7 @@ class Agent:
 
         system_prompt = await build_task_prompt_messaging()
 
-        state.trace.append({"role": "system", "content": system_prompt})
-        state.trace.append({"role": "user", "content": question})
+        state.trace.append({"role": "task prompt", "content": question})
 
         message_content = f"{system_prompt}\n\n{question}"
         is_first_message = True
@@ -356,7 +360,7 @@ class Agent:
                     logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
                 except Exception as e:
                     logger.error(f"[Task {task_idx}] Communication error: {e}")
-                    return make_result(state, mcp_task_id, error=f"Communication error\n{str(e)}")
+                    return make_result(state, mcp_task_id, error=f"Error communicating with purple agent")
 
                 # Parse response
                 try:
@@ -364,7 +368,7 @@ class Agent:
                     logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
                 except json.JSONDecodeError as e:
                     logger.error(f"[Task {task_idx}] Parse error: {e}")
-                    return make_result(state, mcp_task_id, error=f"Failed to parse response\n{str(e)}")
+                    return make_result(state, mcp_task_id, error=f"Failed to parse purple agent response:\n{response_text}")
 
                 action = parsed_response[0] if parsed_response else {}
                 action_name = action.get("name", "").lower()
@@ -388,9 +392,10 @@ class Agent:
                         tool_output_str = str(tool_output)
                         logger.debug(f"[Task {task_idx}] Tool returned:\n{tool_output_str}")
                         message_content = tool_output_str
+                        state.trace.append({"role": "tool call result", "content": message_content})
                     except Exception as e:
                         logger.error(f"[Task {task_idx}] Tool {tool_name} failed: {e}")
-                        return make_result(state, mcp_task_id, error=f"Tool execution failed\n{str(e)}")
+                        return make_result(state, mcp_task_id, error=f"Tool execution failed")
 
             logger.warning(f"[Task {task_idx}] Max iterations ({max_iterations}) reached")
             return make_result(state, mcp_task_id, error="Max iterations reached")

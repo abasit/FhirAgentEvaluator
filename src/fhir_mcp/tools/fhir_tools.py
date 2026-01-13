@@ -17,51 +17,134 @@ from common.fhir_client import get_fhir_client
 logger = logging.getLogger(__name__)
 
 
-SUPPORTED_TYPES = [
-    "Patient",
-    "Encounter",
-    "Condition",
-    "MedicationRequest",
-    "Procedure",
-    "Observation",
-    "MedicationAdministration",
-    "Location",
-    "Specimen",
-    "Medication",
-]
+FHIR_SCHEMA = """
+Available Resource Types and FHIR Resource Schemas:
+
+Condition: {
+  "resourceType": "Condition",
+  "id": "<resource_id>",
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  "subject": {"reference": "Patient/<id>"},
+  "onsetDateTime": "<datetime>"
+}
+
+Encounter: {
+  "resourceType": "Encounter",
+  "id": "<resource_id>",
+  "class": {"code": "IMP | AMB"},
+  "period": {"start": "<datetime>", "end": "<datetime>"},
+  "subject": {"reference": "Patient/<id>"}
+}
+
+Location: {
+  "resourceType": "Location",
+  "id": "<resource_id>",
+  "name": "<location_name>",
+  "type": [{"coding": [{"code": "<type>"}]}],
+  "physicalType": {"coding": [{"code": "<physical_type>"}]}
+}
+
+Medication: {
+  "resourceType": "Medication",
+  "id": "<resource_id>",
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]}
+}
+
+MedicationAdministration: {
+  "resourceType": "MedicationAdministration",
+  "id": "<resource_id>",
+  "status": "completed | in-progress | stopped",
+  "medicationCodeableConcept": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  // OR "medicationReference": {"reference": "Medication/<id>"},
+  "subject": {"reference": "Patient/<id>"},
+  "effectiveDateTime": "<datetime>",
+  // OR "effectivePeriod": {"start": "<datetime>", "end": "<datetime>"},
+  "dosage": {
+    "route": {"coding": [{"code": "<route>"}]},
+    "dose": {"value": <n>, "unit": "<unit>"}
+  }
+}
+
+MedicationRequest: {
+  "resourceType": "MedicationRequest",
+  "id": "<resource_id>",
+  "status": "active | completed | cancelled | stopped",
+  "intent": "order | proposal | plan",
+  "medicationCodeableConcept": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  // OR "medicationReference": {"reference": "Medication/<id>"},
+  "subject": {"reference": "Patient/<id>"},
+  "authoredOn": "<datetime>",
+  "dosageInstruction": [{
+    "route": "<route>",
+    "doseAndRate": [{"doseQuantity": {"value": <n>, "unit": "<unit>"}, "rateQuantity": {"value": <n>, "unit": "<unit>"}}]
+  }]
+}
+
+Observation: {
+  "resourceType": "Observation",
+  "id": "<resource_id>",
+  "status": "final | preliminary",
+  "category": [{"coding": [{"code": "laboratory | vital-signs"}]}],
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  "subject": {"reference": "Patient/<id>"},
+  "effectiveDateTime": "<datetime>",
+  "valueQuantity": {"value": <n>, "unit": "<unit>"}
+  // OR "valueString": "<text>"
+}
+
+Patient: {
+  "resourceType": "Patient",
+  "id": "<resource_id>",
+  "name": [{"given": ["<first>"], "family": "<last>"}],
+  "birthDate": "<date>",
+  "gender": "male | female"
+}
+
+Procedure: {
+  "resourceType": "Procedure",
+  "id": "<resource_id>",
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  "subject": {"reference": "Patient/<id>"},
+  "performedDateTime": "<datetime>"
+}
+
+Specimen: {
+  "resourceType": "Specimen",
+  "id": "<resource_id>",
+  "type": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
+  "subject": {"reference": "Patient/<id>"},
+  "collection": {
+    "collectedDateTime": "<datetime>",
+    "bodySite": {"coding": [{"code": "<site>"}]}
+  }
+}
+"""
 
 
 def fhir_request_get(query_string: str) -> dict:
     """
-    Perform a FHIR GET request and store results for later processing.
+    Perform a FHIR GET request.
 
-    Results are automatically stored in task-scoped storage, organized by
-    resource type. Use execute_python_code with `retrieved_resources` to
-    access the full data.
+    Results are stored in `retrieved_resources` (dict keyed by resource type),
+    accessible via execute_python_code. Results accumulate across calls.
 
     Args:
-        query_string: Relative FHIR path or search query.
+        query_string: FHIR search query.
+            Format: "<ResourceType>?patient=<fhir_id>&<param>=<value>&..."
             Examples:
-                - "Patient/dd2bf984-33c3-5874-8f68-84113327877e"
-                - "Observation?patient=<FHIR-ID>&code=220210"
-                - "Observation?patient=<FHIR-ID>&code=220210&date=ge2133-12-31"
+                - "Patient/<fhir_id>"
+                - "MedicationRequest?patient=<fhir_id>&status=active"
+                - "Observation?patient=<fhir_id>&code=220210&date=ge2133-12-31"
 
     Returns:
         dict: Summary of retrieved resources.
-            On success:
-            {
+            On success: {
                 "message": "Retrieved 47 resources across 2 types",
                 "resource_counts": {"Observation": 45, "Patient": 2}
             }
-            On failure:
-            {
-                "error": "<error message>"
-            }
+            On error: {"error": "<message>"}
 
-    Notes:
-        - Use lookup_medical_code to find codes before querying
-        - Use the Patient FHIR ID from context, not numeric IDs from questions
-        - Results accumulate across multiple calls within the same task
+    Note: Use lookup_medical_code to find codes before querying.
     """
     logger.debug(f"FHIR GET: {query_string}")
     try:
@@ -95,40 +178,54 @@ def fhir_request_get(query_string: str) -> dict:
         return {"error": str(e)}
 
 
-def fhir_request_post(resource: dict) -> dict:
+def fhir_request_post(resource_type: str, params: dict) -> dict:
     """
-    Record a FHIR POST operation without mutating the backend.
+    Create a FHIR resource.
 
-    Used for MedAgentBench action tasks where agents need to demonstrate
-    they would create/update resources. The operation is logged but not
-    actually executed against the FHIR server.
+    Can be used to:
+    - Record vital signs (Observation)
+    - Order medications (MedicationRequest)
+    - Order lab tests or referrals (ServiceRequest)
 
     Args:
-        resource: FHIR resource the agent intends to create/update.
-            Must include "resourceType" field.
+        resource_type: One of "Observation", "MedicationRequest", "ServiceRequest"
+        params: Flat dict of parameters (varies by resource_type)
+
+    For Observation (vitals):
+        - patient_id: Patient FHIR ID
+        - code: Vital code (e.g., "220050")
+        - value: Measurement with unit (e.g., "120 mmHg")
+        - datetime: When measured (ISO format)
+
+    For MedicationRequest:
+        - patient_id: Patient FHIR ID
+        - medication_code: NDC code
+        - dose_value: Dose amount (e.g., 2)
+        - dose_unit: Dose unit (e.g., "g")
+        - rate_value: Infusion rate amount (e.g., 2)
+        - rate_unit: Rate unit (e.g., "h")
+        - route: Administration route (e.g., "IV")
+        - datetime: Order datetime (ISO format)
+
+    For ServiceRequest (lab orders, referrals):
+        - patient_id: Patient FHIR ID
+        - code: Procedure code (SNOMED)
+        - datetime: Order datetime (ISO format)
+        - note: Optional free text comment
 
     Returns:
-        dict: Acknowledgement of the recorded operation.
-            On success:
-            {
-                "message": "FHIR POST recorded",
-                "resource_type": "MedicationRequest"
-            }
-            On failure:
-            {
-                "error": "<error message>"
-            }
+        {"message": "<resource_type> recorded", "params": <params>} or {"error": "<message>"}
     """
-    resource_type = resource.get("resourceType", "Unknown")
+    valid_types = ["Observation", "MedicationRequest", "ServiceRequest"]
+    if resource_type not in valid_types:
+        return {"error": f"Invalid resource_type. Must be one of: {valid_types}"}
 
-    logger.debug(f"FHIR POST ({resource_type}):\n{json.dumps(resource, indent=2)}")
+    if not params:
+        return {"error": "params is required"}
 
-    try:
-        return {
-            "message": "FHIR POST recorded",
-            "resource_type": resource_type
-        }
+    if not params.get("patient_id"):
+        return {"error": "patient_id is required in params"}
 
-    except Exception as e:
-        logger.warning(f"FHIR POST failed: {e}")
-        return {"error": str(e)}
+    logger.debug(f"FHIR POST {resource_type}: {params}")
+
+    return {"message": f"{resource_type} recorded", "params": params}

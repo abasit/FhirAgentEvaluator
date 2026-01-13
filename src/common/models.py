@@ -15,6 +15,7 @@ class ConversationState(BaseModel):
 
 class TaskResult(BaseModel):
     """Result from running a single evaluation task."""
+    question_id: Optional[str] = None
     final_answer: Optional[str] = None
     iterations: int = 0
     trace: list[dict[str, Any]] = Field(default_factory=list)
