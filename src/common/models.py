@@ -1,9 +1,16 @@
+"""
+Data models for FHIR Agent Benchmark.
+
+Defines request/response schemas and result structures used throughout evaluation.
+"""
+
 from typing import Any, Optional
-from pydantic import BaseModel, HttpUrl, Field, computed_field
+from pydantic import BaseModel, HttpUrl, Field
+
 
 class EvalRequest(BaseModel):
     """Request format sent by the AgentBeats platform to green agents."""
-    participants: dict[str, HttpUrl] # role -> agent URL
+    participants: dict[str, HttpUrl]
     config: dict[str, Any]
 
 
@@ -23,15 +30,15 @@ class TaskResult(BaseModel):
     retrieved_fhir_resources: dict[str, list] = Field(default_factory=dict)
     error: Optional[str] = None
 
-    # Evaluation metrics (populated after evaluation)
+    # Populated after evaluation
     true_answer: Optional[str] = None
-    correct: Optional[int] = None  # 0 or 1
+    correct: Optional[int] = None
     precision: Optional[float] = None
     recall: Optional[float] = None
 
+
 class FHIRAgentBenchResult(BaseModel):
-    """Result from medical benchmark evaluation."""
-    # Summary metrics
+    """Aggregated benchmark results with per-task details."""
     total_tasks: int
     correct_answers: int
     accuracy: float
@@ -39,6 +46,4 @@ class FHIRAgentBenchResult(BaseModel):
     avg_recall: float
     f1_score: float
     time_used: float
-
-    # Per-task details
     task_results: list[TaskResult]

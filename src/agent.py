@@ -1,3 +1,14 @@
+"""
+FHIR Agent Benchmark - Green Agent
+
+Orchestrates evaluation of purple (participant) agents on FHIR-based medical tasks.
+Supports two modes:
+- MCP mode: Single round-trip, agent connects to MCP server for tools
+- Messaging mode: Iterative tool calls via A2A messaging
+
+The agent loads tasks, runs them against the purple agent, and evaluates results
+using retrieval metrics (precision/recall) and answer correctness.
+"""
 import asyncio
 import json
 import logging
@@ -18,12 +29,10 @@ from common.evaluation import evaluate_results
 from common.prompt_builder import build_task_prompt_messaging, RESPOND_ACTION_NAME, build_task_prompt_mcp
 from common.task_loader import load_tasks, make_result, is_final_answer, parse_agent_response
 from fhir_mcp import verify_tool_access, execute_tool
+from fhir_mcp.server import current_task_id
 
 warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 logger = logging.getLogger("fhir_green_agent")
-
-
-
 
 DEFAULT_TASKS_FILE = "data/fhiragentbench_tasks.csv"
 DEFAULT_NUM_TASKS = 0  # 0 means all tasks
@@ -34,14 +43,19 @@ DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
 
 
 class Agent:
+    """
+    Green agent that evaluates purple agents on FHIR benchmark tasks.
+
+    Handles request validation, task execution (concurrent), and result evaluation.
+    """
     required_roles: list[str] = ["purple_agent"]
     required_config_keys: list[str] = []  # All config is optional
 
     def __init__(self):
         self.messenger = Messenger()
-        # Initialize other state here
 
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
+        """Validate that request has required participants and config keys."""
         missing_roles = set(self.required_roles) - set(request.participants.keys())
         if missing_roles:
             return False, f"Missing roles: {missing_roles}"
@@ -50,19 +64,15 @@ class Agent:
         if missing_config_keys:
             return False, f"Missing config keys: {missing_config_keys}"
 
-        # Add additional request validation here
-
         return True, "ok"
 
     async def run(self, message: Message, updater: TaskUpdater) -> None:
         """
-        Agent logic
+        Main evaluation entry point.
 
         Args:
-            message: The incoming message
-            updater: Report progress (update_status) and results (add_artifact)
-
-        Use self.messenger.talk_to_agent(message, url) to call other agents.
+            message: EvalRequest JSON with participants and config
+            updater: Task updater for progress and results
         """
         input_text = get_message_text(message)
 
@@ -87,10 +97,10 @@ class Agent:
         eval_model = DEFAULT_EVAL_MODEL
 
         # Verify tool access
-        logger.info(f"Checking tool access")
+        logger.info("Verifying FHIR database connection...")
         verify_tool_access()
-        await updater.update_status(TaskState.working, new_agent_text_message(f"Tool access verified"))
-        logger.info(f"Tool access verified")
+        await updater.update_status(TaskState.working, new_agent_text_message("FHIR database connected"))
+        logger.info("FHIR database connected")
 
         # Load tasks
         tasks_df = load_tasks(tasks_file, num_tasks)
@@ -161,14 +171,12 @@ class Agent:
             max_concurrent: int,
             updater: TaskUpdater,
     ) -> pd.DataFrame:
-        """Run all tasks with concurrency control."""
-        # Create column for results
+        """Run all tasks concurrently with progress updates."""
         tasks_df["result"] = None
 
         total_tasks = len(tasks_df)
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        # Track progress
         completed = 0
         succeeded = 0
         failed = 0
@@ -196,13 +204,11 @@ class Agent:
 
                 return idx, result
 
-        # Create all task coroutines
         coroutines = [
             run_with_semaphore(i, task)
             for i, task in enumerate(tasks_df.itertuples(index=True))
         ]
 
-        # Run and process as each completes
         for coro in asyncio.as_completed(coroutines):
             try:
                 idx, result = await coro
@@ -243,7 +249,7 @@ class Agent:
             max_iterations: int,
             mcp_enabled: bool,
     ) -> TaskResult:
-        """Run a single task against the purple agent."""
+        """Route task to MCP or messaging mode."""
         if mcp_enabled:
             return await self._run_single_task_mcp(
                 purple_agent_url=purple_agent_url,
@@ -264,7 +270,7 @@ class Agent:
             task_idx: int,
             question: str,
     ) -> TaskResult:
-        """Run a single task in MCP mode - single round trip."""
+        """Run task in MCP mode - agent connects to MCP server for tools."""
         state = ConversationState()
 
         mcp_task_id = str(uuid4())
@@ -324,9 +330,8 @@ class Agent:
             question: str,
             max_iterations: int,
     ) -> TaskResult:
-        """Run a single task in messaging mode - iterative tool calls."""
+        """Run task in messaging mode - green agent executes tools iteratively."""
         # Set task context for the entire task
-        from fhir_mcp.server import current_task_id
         mcp_task_id = str(uuid4())
         token = current_task_id.set(mcp_task_id)
 

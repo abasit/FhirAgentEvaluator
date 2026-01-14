@@ -1,3 +1,10 @@
+"""
+FHIR Agent Evaluator Server
+
+A2A and MCP compatible server that evaluates medical LLM agents on FHIR-based clinical tasks.
+Exposes an agent card and MCP tools for participant agents.
+"""
+
 import argparse
 import logging
 import uvicorn
@@ -13,18 +20,17 @@ from executor import Executor
 from fhir_mcp import init_mcp_server
 
 
-# Configure logging
 logging.basicConfig(level=logging.WARNING)
-
 logging.getLogger("fhir_green_agent").setLevel(logging.INFO)
 logging.getLogger("fhir_mcp").setLevel(logging.INFO)
 logging.getLogger("fhir_common").setLevel(logging.INFO)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Run the A2A agent.")
+    parser = argparse.ArgumentParser(description="Run the FHIR Agent Evaluator server.")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind the server")
     parser.add_argument("--port", type=int, default=9009, help="Port to bind the server")
-    parser.add_argument("--card-url", type=str, help="URL to advertise in the agent card")
+    parser.add_argument("--card-url", type=str, help="Public URL for agent card")
     args = parser.parse_args()
 
     base_url = args.card_url or f"http://{args.host}:{args.port}"
@@ -41,14 +47,14 @@ def main():
     "purple_agent": "http://localhost:9009"
   },
   "config": {
-    "num_tasks": 3,                                  # Optional, defaults to None (all tasks)
-    "tasks_file": "data/fhiragentbench_tasks.csv",   # Optional, defaults to "data/fhiragentbench_tasks.csv"
-    "mcp_enabled": true,                             # Optional, defaults to true
-    "max_iterations": 10,                            # Optional, defaults to 10
-    "max_concurrent": 3,                             # Optional, defaults to 3
+    "num_tasks": 0,
+    "tasks_file": "data/fhiragentbench_tasks.csv",
+    "mcp_enabled": true,
+    "max_iterations": 10,
+    "max_concurrent": 3
   }
 }
-"""]
+    """]
     )
 
     agent_card = AgentCard(
@@ -62,14 +68,13 @@ def main():
         skills=[skill]
     )
 
-    # Create MCP server
     mcp_server = init_mcp_server(base_url=base_url)
 
-    # Create A2A server
     request_handler = DefaultRequestHandler(
         agent_executor=Executor(),
         task_store=InMemoryTaskStore(),
     )
+
     a2a_app = A2AStarletteApplication(
         agent_card=agent_card,
         http_handler=request_handler,

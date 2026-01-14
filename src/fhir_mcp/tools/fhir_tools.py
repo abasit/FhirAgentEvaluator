@@ -1,15 +1,11 @@
 """
-FHIR tools for querying and recording operations against a FHIR server.
+FHIR tools for querying and creating resources.
 
-These tools provide the primary interface for agents to interact with patient data.
-Results from fhir_request_get are stored in task-scoped storage and can be accessed
-via execute_python_code using the `retrieved_resources` variable.
-
-Supported FHIR resource types:
-- Patient, Encounter, Condition, MedicationRequest, Procedure
-- Observation, MedicationAdministration, Location, Specimen, Medication
+Provides the primary interface for agents to interact with patient data.
+Results from fhir_request_get are stored in task-scoped storage and can be
+accessed via execute_python_code using the `retrieved_resources` variable.
 """
-import json
+
 import logging
 
 from common.fhir_client import get_fhir_client
@@ -147,10 +143,9 @@ def fhir_request_get(query_string: str) -> dict:
     Note: Use lookup_medical_code to find codes before querying.
     """
     logger.debug(f"FHIR GET: {query_string}")
+
     try:
         client = get_fhir_client()
-
-        # Fetch all resources via pagination
         all_resources = client.search_with_pagination(query_string)
 
         resources_by_type = {}
@@ -158,12 +153,10 @@ def fhir_request_get(query_string: str) -> dict:
             rt = resource.get("resourceType", "Unknown")
             resources_by_type.setdefault(rt, []).append(resource)
 
-        # Merge into task-scoped storage
         from fhir_mcp import get_mcp_server
         mcp_server = get_mcp_server()
         mcp_server.merge_task_resources(resources_by_type)
 
-        # Summarise results
         total_resources = sum(len(v) for v in resources_by_type.values())
         resource_counts = {rt: len(items) for rt, items in resources_by_type.items()}
 
@@ -173,6 +166,7 @@ def fhir_request_get(query_string: str) -> dict:
             "message": f"Retrieved {total_resources} resources across {len(resource_counts)} types",
             "resource_counts": resource_counts
         }
+
     except Exception as e:
         logger.warning(f"FHIR request failed: {e}")
         return {"error": str(e)}

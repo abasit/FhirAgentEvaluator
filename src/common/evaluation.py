@@ -1,3 +1,10 @@
+"""
+Evaluation pipeline for FHIR Agent Benchmark.
+
+Handles retrieval metrics (precision/recall), answer correctness (LLM-based),
+and action validation for MedAgentBench tasks.
+"""
+
 import ast
 import asyncio
 import logging
@@ -17,9 +24,9 @@ async def evaluate_results(
         eval_model: str,
         max_concurrent: int,
 ) -> FHIRAgentBenchResult:
+    """Run full evaluation pipeline and return aggregated results."""
     eval_df = tasks_df.copy()
 
-    # Parse string columns to dicts/lists
     eval_df["true_fhir_ids"] = eval_df["true_fhir_ids"].apply(
         lambda x: ast.literal_eval(x) if isinstance(x, str) and x else {}
     )
@@ -33,7 +40,6 @@ async def evaluate_results(
     logger.info("Calculating answer metrics")
     eval_df = await _calculate_answer_metrics(eval_df, eval_model, max_concurrent)
 
-    # Update task results with evaluation metrics
     for idx, row in eval_df.iterrows():
         result: TaskResult = row["result"]
         result.true_answer = row["true_answer"]
@@ -41,7 +47,6 @@ async def evaluate_results(
         result.precision = row.get("precision")
         result.recall = row.get("recall")
 
-    # Calculate summary metrics
     total = len(eval_df)
     correct = int(eval_df["answer_correctness"].sum())
     avg_precision = eval_df["precision"].mean()
@@ -68,10 +73,9 @@ async def evaluate_results(
 
 
 def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
-    """Calculate retrieval precision and recall metrics."""
+    """Calculate retrieval precision and recall, excluding action-only tasks."""
 
     def extract_agent_resource_ids(row) -> list[str]:
-        """Extract FHIR resource IDs filtered by true resource types."""
         result: TaskResult = row["result"]
         true_fhir_ids: dict = row["true_fhir_ids"]
 
@@ -91,13 +95,11 @@ def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
     )
 
     def calc_recall(row):
-        # No retrieval expected - exclude from metrics
         if not row["true_fhir_ids_list"]:
             return None
         return retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"])
 
     def calc_precision(row):
-        # No retrieval expected - exclude from metrics
         if not row["true_fhir_ids_list"]:
             return None
         return retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"])
@@ -124,7 +126,6 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
             task_type = row.get("task_type", "")
             expected_actions = row.get("expected_actions", [])
 
-            # Check action tasks
             if task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
                 action_correct = _evaluate_action_task(expected_actions, result)
                 if not action_correct:
@@ -141,7 +142,6 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
                         model=model,
                     )
             else:
-                # Retrieval-only tasks (FHIRAgentBench, MedicationConflict)
                 if result.error or not result.final_answer:
                     correctness = 0
                 else:
@@ -170,7 +170,7 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
 
 
 def _evaluate_action_task(expected_actions: list, task_result: TaskResult) -> int:
-    """Check if POST requests match expected actions."""
+    """Check if POST requests match expected actions (1=match, 0=mismatch)."""
     post_requests = [
         t["args"] for t in task_result.tools_used
         if t.get("tool") == "fhir_request_post"
@@ -199,10 +199,7 @@ def _evaluate_action_task(expected_actions: list, task_result: TaskResult) -> in
 def _dict_match(actual: dict, expected: dict) -> bool:
     """Check if actual dict contains all expected keys with matching values."""
     for key, expected_val in expected.items():
-        if key == "note_contains":
-            actual_key = "note"
-        else:
-            actual_key = key
+        actual_key = "note" if key == "note_contains" else key
         if not _values_match(actual.get(actual_key), expected_val, field_name=key):
             logger.debug(f"Mismatch for {key}: got {actual.get(actual_key)}, expected {expected_val}")
             return False
@@ -210,17 +207,17 @@ def _dict_match(actual: dict, expected: dict) -> bool:
 
 
 def _values_match(actual, expected, field_name: str = None) -> bool:
-    """Compare values with leniency for formats."""
+    """Compare values with leniency for common format variations."""
     if actual == expected:
         return True
     if actual is None or expected is None:
         return False
 
-    # note_contains: check all substrings are present
+    # note_contains: check all substrings present
     if field_name == "note_contains" and isinstance(expected, list) and isinstance(actual, str):
         return all(substring in actual for substring in expected)
 
-    # note: contains match
+    # note: substring match
     if field_name == "note" and isinstance(expected, str) and isinstance(actual, str):
         return expected in actual
 
@@ -228,12 +225,11 @@ def _values_match(actual, expected, field_name: str = None) -> bool:
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float)):
         return float(actual) == float(expected)
 
-    # String comparison - try datetime first
+    # String comparison - try datetime parsing
     if isinstance(expected, str) and isinstance(actual, str):
         try:
             actual_dt = date_parser.parse(actual)
             expected_dt = date_parser.parse(expected)
-            # Compare without timezone (strip tzinfo)
             return actual_dt.replace(tzinfo=None) == expected_dt.replace(tzinfo=None)
         except (ValueError, TypeError):
             pass

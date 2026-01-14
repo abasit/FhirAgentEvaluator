@@ -1,27 +1,36 @@
+"""
+FHIR HTTP client with pagination support.
+
+Provides a simple interface for querying FHIR resources from the server.
+"""
+
 import os
-import requests
 from typing import Any
+
+import requests
 
 FHIR_SERVER_URL = os.environ.get("FHIR_SERVER_URL", "http://localhost:8080/fhir")
 
 JsonObject = list[dict[str, Any]]
 
+
 class FHIRClient:
+    """HTTP client for FHIR server queries."""
+
     def __init__(self, base_url: str):
         self.fhir_store_url = base_url.rstrip('/')
         self.session = requests.Session()
 
     @staticmethod
     def _remove_fields(resource: dict, fields: list[str]) -> dict:
+        """Remove specified fields from resource (e.g., text, meta)."""
         for field in fields:
             if field in resource:
                 del resource[field]
         return resource
 
     def _fetch_resources_with_pagination(self, initial_resource_path: str) -> list[dict]:
-        """
-        Common function to fetch resources with pagination support.
-        """
+        """Fetch all resources, following pagination links."""
         all_resources = []
         resource_path = initial_resource_path
 
@@ -48,9 +57,11 @@ class FHIRClient:
         return all_resources
 
     def search_with_pagination(self, query_string: str) -> list[dict]:
+        """Execute FHIR search query and return all matching resources."""
         resource_path = f"{self.fhir_store_url}/{query_string}"
         return self._fetch_resources_with_pagination(resource_path)
 
 
 def get_fhir_client() -> FHIRClient:
+    """Get a FHIRClient instance using FHIR_SERVER_URL environment variable."""
     return FHIRClient(FHIR_SERVER_URL)

@@ -1,5 +1,12 @@
+"""
+Task loading and response parsing for FHIR Agent Benchmark.
+
+Handles CSV loading, agent response extraction, and result construction.
+"""
+
 import json
 import logging
+import re
 
 import pandas as pd
 
@@ -10,7 +17,7 @@ logger = logging.getLogger("fhir_green_agent.evaluation")
 
 
 def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
-    """Load tasks from file."""
+    """Load tasks from CSV file."""
     tasks_df = pd.read_csv(tasks_file)[
         # For FHIR-Agent-Bench
         # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids"]
@@ -23,7 +30,6 @@ def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
     if num_tasks:
         tasks_df = tasks_df[:num_tasks].copy()
 
-    # Add question_with_context
     def create_input_str(row):
         input_str = f"Question: {row['question']}\nContext:"
         input_str += f"\nPatient FHIR ID is {row['patient_fhir_id']}."
@@ -38,9 +44,9 @@ def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
 
 
 def parse_agent_response(response_text: str) -> list:
-    import re
-
+    """Extract JSON from agent response (supports <json>, ```json```, or raw JSON)."""
     json_str = None
+
     match = re.search(r'<json>\s*(.*?)\s*</json>', response_text, re.DOTALL)
     if match:
         json_str = match.group(1)
@@ -58,13 +64,11 @@ def parse_agent_response(response_text: str) -> list:
     else:
         parsed = json.loads(response_text)
 
-    if isinstance(parsed, list):
-        return parsed
-    else:
-        return [parsed]
+    return parsed if isinstance(parsed, list) else [parsed]
 
 
 def is_final_answer(content: str) -> bool:
+    """Check if response contains a final answer marker."""
     if not content:
         return False
     return "the final answer is:" in content.lower().strip()
@@ -76,17 +80,13 @@ def make_result(
         final_answer: str = None,
         error: str = None,
 ) -> TaskResult:
+    """Build TaskResult with retrieved resources and tool logs from MCP server."""
     mcp_server = get_mcp_server()
-
     retrieved_resources = mcp_server.get_task_resources(mcp_task_id)
 
-    # Collect resource IDs by type
     retrieved_resource_ids = {}
     for resource_type, resources in retrieved_resources.items():
-        ids = []
-        for resource in resources:
-            if isinstance(resource, dict) and "id" in resource:
-                ids.append(resource["id"])
+        ids = [r["id"] for r in resources if isinstance(r, dict) and "id" in r]
         if ids:
             retrieved_resource_ids[resource_type] = ids
 
@@ -102,4 +102,3 @@ def make_result(
     mcp_server.clear_task(mcp_task_id)
 
     return result
-

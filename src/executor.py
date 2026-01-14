@@ -1,3 +1,10 @@
+"""
+A2A Request Executor
+
+Handles incoming A2A requests by dispatching to Agent instances.
+Maintains one Agent per context_id for multi-turn conversations.
+"""
+
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
@@ -25,8 +32,10 @@ TERMINAL_STATES = {
 
 
 class Executor(AgentExecutor):
+    """Dispatches A2A requests to Agent instances, one per conversation context."""
+
     def __init__(self):
-        self.agents: dict[str, Agent] = {} # context_id to agent instance
+        self.agents: dict[str, Agent] = {}
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         msg = context.message

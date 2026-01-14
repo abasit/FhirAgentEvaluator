@@ -1,9 +1,15 @@
+"""
+Task prompt construction for FHIR Agent Benchmark.
+
+Builds system prompts for MCP mode (tool access via URL) and messaging mode
+(iterative tool calls with definitions).
+"""
+
 from fhir_mcp import get_mcp_server
 from fhir_mcp.tools import FHIR_SCHEMA
 
 
 RESPOND_ACTION_NAME = "response"
-
 
 TASK_INSTRUCTIONS = """
 Task instructions:
@@ -11,9 +17,7 @@ Task instructions:
 - Provide answers in the same format as retrieved data. If multiple answers, provide all in a list.
 """
 
-
 RESPONSE_FORMAT = f"""
-
 Response format:
 - For action tasks (recording vitals, ordering medications/referrals), your final answer should confirm the action was taken, e.g., "Vital recorded" or "Referral ordered".
 - Respond in the JSON format.
@@ -23,7 +27,7 @@ Response format:
 
 
 def build_task_prompt_mcp(mcp_task_id: str) -> str:
-    """Build the system prompt for MCP mode."""
+    """Build system prompt for MCP mode with tool server URL."""
     mcp_server = get_mcp_server()
     mcp_url = mcp_server.get_mcp_url(mcp_task_id)
 
@@ -39,8 +43,9 @@ def build_task_prompt_mcp(mcp_task_id: str) -> str:
 {tool_access}
 """
 
+
 async def build_task_prompt_messaging() -> str:
-    """Build the system prompt for messaging mode."""
+    """Build system prompt for messaging mode with inline tool definitions."""
     mcp_server = get_mcp_server()
     tool_definitions = await mcp_server.get_tool_definitions()
 

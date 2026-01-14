@@ -1,17 +1,29 @@
-import litellm
+"""
+Evaluation metrics for FHIR Agent Benchmark.
+
+Provides retrieval metrics (precision/recall) and LLM-based answer correctness checking.
+"""
+
 import logging
+
+import litellm
 import numpy as np
 
 logger = logging.getLogger("fhir_common")
 
+
 def retrieval_recall(pred: list, true: list) -> float:
-    """Calculate retrieval recall."""
+    """
+    Calculate retrieval recall.
+
+    Returns NaN when no ground truth exists (to exclude from averages).
+    """
     pred_set = set(pred)
 
     if len(true) == 0 and len(pred) == 0:
         return 1.0
     if len(true) == 0 and len(pred) > 0:
-        return np.nan  # Exclude from calculation
+        return np.nan
     if len(true) > 0 and len(pred) == 0:
         return 0.0
 
@@ -19,7 +31,11 @@ def retrieval_recall(pred: list, true: list) -> float:
 
 
 def retrieval_precision(pred: list, true: list) -> float:
-    """Calculate retrieval precision."""
+    """
+    Calculate retrieval precision.
+
+    Returns NaN when no predictions made (to exclude from averages).
+    """
     true_set = set(true)
 
     if len(true) == 0 and len(pred) == 0:
@@ -27,7 +43,7 @@ def retrieval_precision(pred: list, true: list) -> float:
     if len(true) == 0 and len(pred) > 0:
         return 0.0
     if len(true) > 0 and len(pred) == 0:
-        return np.nan  # Exclude from calculation
+        return np.nan
 
     return np.mean([p in true_set for p in pred])
 
@@ -53,7 +69,7 @@ Return only 0 or 1:"""
 
 
 async def check_answer_correctness(answer: str, ref_answer: str, question: str, model: str) -> int:
-    """Check if agent answer matches true answer using LLM evaluation."""
+    """Check if agent answer matches reference using LLM evaluation."""
     prompt = ANSWER_CORRECTNESS_PROMPT.format(
         question=question,
         ref_answer=ref_answer,

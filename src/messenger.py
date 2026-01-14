@@ -1,3 +1,10 @@
+"""
+A2A Messaging Utilities
+
+Provides helpers for agent-to-agent communication via the A2A protocol.
+The Messenger class maintains conversation context across multiple exchanges.
+"""
+
 import json
 from uuid import uuid4
 
@@ -23,6 +30,7 @@ DEFAULT_TIMEOUT = 300
 def create_message(
     *, role: Role = Role.user, text: str, context_id: str | None = None
 ) -> Message:
+    """Create an A2A message with the given text."""
     return Message(
         kind="message",
         role=role,
@@ -33,6 +41,7 @@ def create_message(
 
 
 def merge_parts(parts: list[Part]) -> str:
+    """Combine message parts into a single string."""
     chunks = []
     for part in parts:
         if isinstance(part.root, TextPart):
@@ -49,8 +58,13 @@ async def send_message(
     streaming: bool = False,
     timeout: int = DEFAULT_TIMEOUT,
     consumer: Consumer | None = None,
-):
-    """Returns dict with context_id, response and status (if exists)"""
+) -> dict:
+    """
+    Send a message to an A2A agent.
+
+    Returns:
+        dict with context_id, response, and status (if applicable)
+    """
     async with httpx.AsyncClient(timeout=timeout) as httpx_client:
         resolver = A2ACardResolver(httpx_client=httpx_client, base_url=base_url)
         agent_card = await resolver.get_agent_card()
@@ -67,7 +81,6 @@ async def send_message(
         last_event = None
         outputs = {"response": "", "context_id": None}
 
-        # if streaming == False, only one event is generated
         async for event in client.send_message(outbound_msg):
             last_event = event
 
@@ -93,6 +106,13 @@ async def send_message(
 
 
 class Messenger:
+    """
+    Manages conversations with A2A agents.
+
+    Maintains context_id per (url, task_id) pair to support
+    concurrent multi-turn conversations with multiple agents.
+    """
+
     def __init__(self):
         self._context_ids = {}
 
@@ -103,18 +123,19 @@ class Messenger:
         task_id: int,
         new_conversation: bool = False,
         timeout: int = DEFAULT_TIMEOUT,
-    ):
+    ) -> str:
         """
-        Communicate with another agent by sending a message and receiving their response.
+        Send a message to an agent and return its response.
 
         Args:
-            message: The message to send to the agent
+            message: The message to send
             url: The agent's URL endpoint
-            new_conversation: If True, start fresh conversation; if False, continue existing conversation
-            timeout: Timeout in seconds for the request (default: 300)
+            task_id: Task identifier for context tracking
+            new_conversation: If True, start fresh conversation
+            timeout: Request timeout in seconds
 
         Returns:
-            str: The agent's response message
+            The agent's response text
         """
         key = (url, task_id)
         outputs = await send_message(
@@ -129,4 +150,5 @@ class Messenger:
         return outputs["response"]
 
     def reset(self):
+        """Clear all conversation contexts."""
         self._context_ids = {}

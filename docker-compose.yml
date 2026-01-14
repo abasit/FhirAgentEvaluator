@@ -1,0 +1,22 @@
+services:
+  fhir-server:
+    image: ghcr.io/abasit/fhir-mimic-h2:latest
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/fhir/Patient?_count=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  green-agent:
+    build: .
+    ports:
+      - "9009:9009"
+    environment:
+      - FHIR_SERVER_URL=http://fhir-server:8080/fhir
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      fhir-server:
+        condition: service_healthy

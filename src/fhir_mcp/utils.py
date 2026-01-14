@@ -76,7 +76,6 @@ def execute_tool(tool_name: str, tool_args: dict) -> dict:
     tool_function = get_tool(tool_name)
     result = tool_function(**tool_args)
 
-    # Log the tool call (uses current_task_id context)
     get_mcp_server().log_tool_call(tool_name, tool_args, result)
 
     return result

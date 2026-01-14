@@ -13,6 +13,8 @@ import requests
 logger = logging.getLogger(__name__)
 
 FDA_LABEL_URL = "https://api.fda.gov/drug/label.json"
+INFO_FIELDS = ["drug_interactions", "boxed_warning", "warnings", "contraindications", "precautions",
+               "general_precautions"]
 
 
 def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
@@ -25,9 +27,6 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     Returns:
         dict mapping each drug name to its FDA label text (interactions, warnings,
         boxed warnings, contraindications), or an error message if fetching fails.
-
-    Note:
-        Requires network access to api.fda.gov.
     """
     if not drug_list:
         return {"error": "No drug names provided"}
@@ -65,10 +64,9 @@ def _fetch_fda_label(drug_name: str) -> str:
         return "No FDA label found"
 
     result = results[0]
-    fields = ["drug_interactions", "boxed_warning", "warnings", "contraindications", "precautions"]
 
     sections = []
-    for field in fields:
+    for field in INFO_FIELDS:
         content = result.get(field, [])
         if content:
             sections.append("\n".join(content))
