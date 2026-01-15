@@ -117,25 +117,27 @@ curl -X POST http://localhost:9009/ \
   -H "Content-Type: application/json" \
   -d '{
     "participants": {
-      "purple_agent": "http://localhost:9010"
+      "purple_agent": "<purple_agent_url>"
     },
     "config": {
-      "num_tasks": 5,
-      "tasks_file": "data/fhiragentbench_tasks.csv",
-      "mcp_enabled": true
+      "num_tasks": 0,
+      "tasks_file": "data/all_tasks.csv",
+      "mcp_enabled": true,
+      "max_iterations": 10,
+      "max_concurrent": 3
     }
   }'
 ```
 
 ### Configuration Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `num_tasks` | 0 (all) | Number of tasks to run |
-| `tasks_file` | `data/fhiragentbench_tasks.csv` | Path to task CSV |
-| `mcp_enabled` | true | MCP mode (true) or messaging mode (false) |
-| `max_iterations` | 10 | Max agent turns per task |
-| `max_concurrent` | 3 | Parallel task execution |
+| Option | Default              | Description |
+|--------|----------------------|-------------|
+| `num_tasks` | 0 (all)              | Number of tasks to run |
+| `tasks_file` | `data/all_tasks.csv` | Path to task CSV |
+| `mcp_enabled` | true                 | MCP mode (true) or messaging mode (false) |
+| `max_iterations` | 10                   | Max agent turns per task |
+| `max_concurrent` | 3                    | Parallel task execution |
 
 ## Citation
 

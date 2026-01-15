@@ -34,7 +34,7 @@ from fhir_mcp.server import current_task_id
 warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 logger = logging.getLogger("fhir_green_agent")
 
-DEFAULT_TASKS_FILE = "data/fhiragentbench_tasks.csv"
+DEFAULT_TASKS_FILE = "data/all_tasks.csv"
 DEFAULT_NUM_TASKS = 0  # 0 means all tasks
 DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10

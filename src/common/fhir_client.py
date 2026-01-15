@@ -9,7 +9,7 @@ from typing import Any
 
 import requests
 
-FHIR_SERVER_URL = os.environ.get("FHIR_SERVER_URL", "http://localhost:8080/fhir")
+FHIR_SERVER_URL = os.environ.get("FHIR_SERVER_URL", "http://fhir-server:8080/fhir")
 
 JsonObject = list[dict[str, Any]]
 

@@ -44,11 +44,11 @@ def main():
         examples=["""
 {
   "participants": {
-    "purple_agent": "http://localhost:9009"
+    "purple_agent": "<purple_agent_url>"
   },
   "config": {
     "num_tasks": 0,
-    "tasks_file": "data/fhiragentbench_tasks.csv",
+    "tasks_file": "data/all_tasks.csv",
     "mcp_enabled": true,
     "max_iterations": 10,
     "max_concurrent": 3
