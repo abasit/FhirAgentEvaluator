@@ -41,6 +41,20 @@ DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
 DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
 
+def format_eta(seconds: float) -> str:
+    """
+    Format an ETA in seconds into a human-readable string.
+    """
+    seconds = int(seconds)
+    if seconds < 60:
+        return f"{seconds}s"
+
+    minutes, seconds = divmod(seconds, 60)
+    if minutes < 60:
+        return f"{minutes}m {seconds}s"
+
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours}h {minutes}m"
 
 class Agent:
     """
@@ -194,6 +208,7 @@ class Agent:
                     max_iterations=max_iterations,
                     mcp_enabled=mcp_enabled,
                 )
+                result.question = task.question_with_context
                 result.question_id = task.question_id
 
                 elapsed = time.time() - task_start
@@ -227,7 +242,7 @@ class Agent:
                 progress_msg = (
                     f"Progress: {completed}/{total_tasks} "
                     f"({succeeded} ok, {failed} failed) "
-                    f"ETA: {eta:.0f}s"
+                    f"ETA: {format_eta(eta)}"
                 )
                 await updater.update_status(TaskState.working, new_agent_text_message(progress_msg))
 
