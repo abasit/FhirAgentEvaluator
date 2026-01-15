@@ -22,6 +22,7 @@ class ConversationState(BaseModel):
 
 class TaskResult(BaseModel):
     """Result from running a single evaluation task."""
+    question: Optional[str] = None
     question_id: Optional[str] = None
     final_answer: Optional[str] = None
     iterations: int = 0
