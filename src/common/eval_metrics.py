@@ -111,9 +111,10 @@ The model answer may be more verbose or formatted differently from the true answ
    - Part 2 (interaction): "interaction exists" / "no interactions"
    - If no current medications, part 1 is an empty list [] and part 2 should be "no interactions"
    - Model is correct only if BOTH parts are correct.
-   - If interaction exists, then model is correct if it identifies ANY risk, caution, warning, or potential interaction, even if indirect or inferred.
+   - If interaction exists, then model is correct if it identifies ANY risk, caution, warning, or potential interaction with ANY of the current medications, even if indirect or inferred.
    - If interaction does not exist: model is correct if its FINAL CONCLUSION states no interactions with current medications. Ignore general drug information provided as context.
    - The model does not need to match specific interaction mechanisms - identifying any valid concern is sufficient.
+   - Ignore general drug warnings about other medications not in the patient's list.
 
 ### Examples:
 
@@ -215,25 +216,16 @@ EXAMPLE 11:
 - question: List Patient X's current medications. I want to prescribe nifedipine. Does it interact with any of the patient's current medications?
 - true answer: [['docusate sodium (liquid)', 'glucose gel', 'heparin'], 'interaction exists']
 - model answer: Nifedipine does not have any direct interactions with docusate sodium, glucose gel, or heparin according to the FDA drug labels. However, caution is advised when nifedipine is co-administered with heparin due to potential bleeding risks.
-- reasoning: Model lists all 3 medications. Even though it says "no direct interactions", it advises caution with heparin. ANY caution, warning, or monitoring recommendation counts as identifying an interaction - "no direct" followed by "however/but caution" means interaction exists.
+- reasoning: Model lists all 3 medications. Even though it says "no direct interactions", it advises caution with heparin. ANY caution, warning, or monitoring recommendation mentioning a current medication counts as identifying an indirect interaction.
 You will return: 1
 
 --
 
 EXAMPLE 12:
-- question: List Patient X's current medications. I want to prescribe nifedipine. Does it interact with any of the patient's current medications?
-- true answer: [['docusate sodium (liquid)', 'glucose gel', 'heparin'], 'interaction exists']
-- model answer: Current medications: docusate sodium, glucose gel, heparin. No interactions found. Nifedipine is safe to use.
-- reasoning: Model lists medications correctly but incorrectly concludes no interactions. Part 2 is wrong.
-You will return: 0
-
---
-
-EXAMPLE 13:
-- question: List Patient X's current medications. I want to prescribe clopidogrel. Does it interact with any of the patient's current medications?
-- true answer: [[], 'no interactions']
-- model answer: The patient currently has no active medications. Since there are no current medications, there are no interactions to consider.
-- reasoning: Model correctly identifies no medications and concludes no interactions. Both parts correct.
+- question: List Patient X's current medications. I want to prescribe ondansetron. Does it interact with any of the patient's current medications?
+- true answer: [['lisinopril', 'vitamin d', 'lenalidomide'], 'no interactions']
+- model answer: Ondansetron does not interact with lisinopril, vitamin D, or lenalidomide. Monitor for serotonin syndrome with other serotonergic drugs. No interactions with current medications.
+- reasoning: Model lists all 3 medications and concludes no interactions with current medications. General warnings about "other drugs" are ignored.
 You will return: 1
 
 --
@@ -254,7 +246,7 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
         ref_answer=ref_answer,
         answer=answer,
     )
-    print(prompt)
+
     response = await litellm.acompletion(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -271,25 +263,25 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
 
 async def main():
 
-    # question = """Question: List Patient 10037928's current medications. I want to prescribe clopidogrel. Does it interact with any of the patient's current medications? Context: Patient FHIR ID is fa5fbf9c-23e3-5ef3-9cfb-24d20a950314. Assume the current time is 2139-03-10 22:15:00. When searching for values in the database, account for all variations in letter case and surrounding whitespace. Current medications include: []"""
-    # true_answer = """[[], 'no interactions']"""
-    # final_answer = "The final answer is: Clopidogrel has several drug interactions, including with CYP2C19 inducers, opioids, NSAIDs, warfarin, SSRIs, SNRIs, other antiplatelet agents, and repaglinide. Since the patient currently has no medications, there are no interactions to consider at this time."
+    question = """Question: List Patient 10037928's current medications. I want to prescribe clopidogrel. Does it interact with any of the patient's current medications? Context: Patient FHIR ID is fa5fbf9c-23e3-5ef3-9cfb-24d20a950314. Assume the current time is 2139-03-10 22:15:00. When searching for values in the database, account for all variations in letter case and surrounding whitespace. Current medications include: []"""
+    true_answer = """[[], 'no interactions']"""
+    final_answer = "The final answer is: The patient currently has no active medications. Clopidogrel has several interactions, including with CYP2C19 inducers, opioids, NSAIDs, warfarin, SSRIs, SNRIs, other antiplatelet agents, and repaglinide. Since the patient has no current medications, there are no interactions with clopidogrel."
 
+    response = await check_answer_correctness(answer=final_answer, ref_answer=true_answer, question=question, model="openai/gpt-4o-mini")
+    print(response)
 
     question = """Question: List Patient 10037928's current medications. I want to prescribe nifedipine. Does it interact with any of the patient's current medications?\nContext:\nPatient FHIR ID is d378a59b-aa80-5bc5-812a-7d59b26e7df4.\nAssume the current time is 2157-07-01 05:00:00. When searching for values in the database, account for all variations in letter case and surrounding whitespace.\nCurrent medications include: ['docusate sodium (liquid)', 'glucose gel', 'heparin']"""
     true_answer = "[['docusate sodium (liquid)', 'glucose gel', 'heparin'], 'interaction exists']"
-    final_answer = ("The final answer is: Nifedipine does not have any direct interactions with docusate sodium, glucose gel,"
-                    "or heparin according to the FDA drug labels. However, caution is advised when using nifedipine with medications"
-                    "that affect blood pressure or platelet aggregation, such as heparin, due to potential bleeding risks. It is "
-                    "important to monitor the patient closely if nifedipine is prescribed alongside these medications.")
-
-    # question = "Question: List Patient 10037928's current medications. I want to prescribe ondansetron. Does it interact with any of the patient's current medications?\nContext:\nPatient FHIR ID is 77e10fd0-6a1c-5547-a130-fae1341acf36.\nAssume the current time is 2134-06-07 02:30:00. When searching for values in the database, account for all variations in letter case and surrounding whitespace.\nCurrent medications include: ['lisinopril', 'vitamin d', 'lenalidomide (revlimide)15mg']"
-    # final_answer = "The final answer is: Ondansetron does not have any direct interactions with lisinopril, vitamin D, or lenalidomide. However, it is important to monitor for serotonin syndrome when ondansetron is used with other serotonergic drugs, and to be cautious of potential changes in ondansetron clearance when used with inducers or inhibitors of cytochrome P-450 enzymes. There are no specific interactions noted with the patient's current medications."
-    # true_answer = "[['lisinopril', 'vitamin d', 'lenalidomide (revlimide)15mg'], 'no interactions']"
+    final_answer = "The final answer is: Nifedipine does not have any direct interactions with docusate sodium, glucose gel, or heparin according to the FDA labels. However, caution is advised when using nifedipine with medications that affect blood pressure or platelet aggregation, as nifedipine can cause hypotension and peripheral edema. Heparin, which is one of the patient's current medications, can interact with drugs that interfere with platelet aggregation, potentially increasing bleeding risk. Therefore, while there is no direct interaction between nifedipine and heparin, careful monitoring is recommended when these medications are used together."
 
     response = await check_answer_correctness(answer=final_answer, ref_answer=true_answer, question=question, model="openai/gpt-4o-mini")
+    print(response)
 
+    question = "Question: List Patient 10037928's current medications. I want to prescribe ondansetron. Does it interact with any of the patient's current medications?\nContext:\nPatient FHIR ID is 77e10fd0-6a1c-5547-a130-fae1341acf36.\nAssume the current time is 2134-06-07 02:30:00. When searching for values in the database, account for all variations in letter case and surrounding whitespace.\nCurrent medications include: ['lisinopril', 'vitamin d', 'lenalidomide (revlimide)15mg']"
+    final_answer = "The final answer is: Ondansetron does not have any direct interactions with lisinopril, vitamin D, or lenalidomide (Revlimide) according to the FDA drug labels. However, it is important to monitor for serotonin syndrome if ondansetron is used with other serotonergic drugs, and to be aware of its metabolism through cytochrome P-450 enzymes, which could be affected by other medications. No specific interactions with the patient's current medications were identified."
+    true_answer = "[['lisinopril', 'vitamin d', 'lenalidomide (revlimide)15mg'], 'no interactions']"
 
+    response = await check_answer_correctness(answer=final_answer, ref_answer=true_answer, question=question, model="openai/gpt-4o-mini")
     print(response)
 
 if __name__ == "__main__":
