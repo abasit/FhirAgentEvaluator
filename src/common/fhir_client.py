@@ -36,7 +36,16 @@ class FHIRClient:
 
         while True:
             response = self.session.get(resource_path)
-            response.raise_for_status()
+
+            if response.status_code >= 400:
+                # Parse OperationOutcome for helpful error message
+                try:
+                    outcome = response.json()
+                    diagnostics = outcome.get("issue", [{}])[0].get("diagnostics", response.text)
+                    raise Exception(diagnostics)
+                except (ValueError, KeyError):
+                    raise Exception(f"{response.status_code}: {response.text}")
+
             resources = response.json()
 
             if resources.get("entry", []):
