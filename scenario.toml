@@ -1,13 +1,13 @@
 [green_agent]
-endpoint = "http://127.0.0.1:9009"
+endpoint = "http://127.0.0.1:9000"
 
 [[participants]]
 role = "purple_agent"
-endpoint = "http://127.0.0.1:9002"
+endpoint = "http://127.0.0.1:9001"
 
 [config]
-num_tasks = 1
-mcp_enabled = true
-tasks_file = "data/fhiragentbench_tasks.csv"
+num_tasks = 10
+mcp_enabled = false
+tasks_file = "data/test.csv"
 max_iterations = 10
-max_concurrent = 3
+max_concurrent = 1

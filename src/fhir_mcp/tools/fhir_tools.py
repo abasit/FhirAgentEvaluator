@@ -19,81 +19,93 @@ Available Resource Types and FHIR Resource Schemas:
 Condition: {
   "resourceType": "Condition",
   "id": "<resource_id>",
-  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
   "subject": {"reference": "Patient/<id>"},
-  "onsetDateTime": "<datetime>"
+  "encounter": {"reference": "Encounter/<id>"},
+  "category": [{"coding": [{"system": "<system>", "code": "<category_code>", "display": "<category_name>"}]}],
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<diagnosis_name>"}]}
 }
 
 Encounter: {
   "resourceType": "Encounter",
   "id": "<resource_id>",
-  "class": {"code": "IMP | AMB"},
+  "identifier": [{"system": "<system>", "value": "<encounter_number>"}],
+  // identifier.system:
+  //   "http://mimic.mit.edu/fhir/mimic/identifier/encounter-hosp" = hospital visit
+  //   "http://mimic.mit.edu/fhir/mimic/identifier/encounter-icu" = ICU stay
+  //   "http://mimic.mit.edu/fhir/mimic/identifier/encounter-ed" = emergency dept
+  "status": "finished",
+  "class": {"system": "<system>", "code": "IMP | AMB | EMER | OBSENC | ACUTE", "display": "<class_name>"},
+  "subject": {"reference": "Patient/<id>"},
   "period": {"start": "<datetime>", "end": "<datetime>"},
-  "subject": {"reference": "Patient/<id>"}
+  "location": [{"location": {"reference": "Location/<id>"}, "period": {"start": "<datetime>", "end": "<datetime>"}}],
+  // location array tracks care unit transfers - use Location reference to get unit name
+  "partOf": {"reference": "Encounter/<parent_id>"}  // ICU encounters reference parent hospital encounter
 }
 
 Location: {
   "resourceType": "Location",
   "id": "<resource_id>",
-  "name": "<location_name>",
-  "type": [{"coding": [{"code": "<type>"}]}],
-  "physicalType": {"coding": [{"code": "<physical_type>"}]}
+  "status": "active",
+  "name": "<careunit_name>",
+  "physicalType": {"coding": [{"system": "<system>", "code": "<code>", "display": "<type>"}]}
 }
 
 Medication: {
   "resourceType": "Medication",
   "id": "<resource_id>",
-  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]}
-}
-
-MedicationAdministration: {
-  "resourceType": "MedicationAdministration",
-  "id": "<resource_id>",
-  "status": "completed | in-progress | stopped",
-  "medicationCodeableConcept": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
-  // OR "medicationReference": {"reference": "Medication/<id>"},
-  "subject": {"reference": "Patient/<id>"},
-  "effectiveDateTime": "<datetime>",
-  // OR "effectivePeriod": {"start": "<datetime>", "end": "<datetime>"},
-  "dosage": {
-    "route": {"coding": [{"code": "<route>"}]},
-    "dose": {"value": <n>, "unit": "<unit>"}
-  }
+  "identifier": [
+    {"system": "http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-ndc", "value": "<ndc_code>"},
+    {"system": "http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-formulary-drug-cd", "value": "<formulary_code>"},
+    {"system": "http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-name", "value": "<medication_name>"}
+  ],
+  // To get medication name: find identifier where system contains "medication-name"
+  "code": {"coding": [{"system": "<system>", "code": "<ndc_code>"}]},
+  "status": "active"
 }
 
 MedicationRequest: {
   "resourceType": "MedicationRequest",
   "id": "<resource_id>",
-  "status": "active | completed | cancelled | stopped",
-  "intent": "order | proposal | plan",
-  "medicationCodeableConcept": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
-  // OR "medicationReference": {"reference": "Medication/<id>"},
-  "subject": {"reference": "Patient/<id>"},
+  "status": "completed | stopped | unknown",
   "authoredOn": "<datetime>",
+  "subject": {"reference": "Patient/<id>"},
+  // Medication can be inline OR referenced:
+  "medicationCodeableConcept": {"coding": [{"system": "<system>", "code": "<medication_name>"}]},
+  // -OR-
+  "medicationReference": {"reference": "Medication/<medication_id>"},  // Must be retrieved to get medication info
   "dosageInstruction": [{
-    "route": "<route>",
+    "route": {"coding": [{"system": "<system>", "code": "<route_code>"}]},
     "doseAndRate": [{"doseQuantity": {"value": <n>, "unit": "<unit>"}, "rateQuantity": {"value": <n>, "unit": "<unit>"}}]
-  }]
+  }],
+  "dispenseRequest": {
+    "validityPeriod": {
+      "start": "<datetime>",  // When patient starts medication
+      "end": "<datetime>"     // When patient ends medication
+    }
+  }
 }
 
 Observation: {
   "resourceType": "Observation",
   "id": "<resource_id>",
-  "status": "final | preliminary",
-  "category": [{"coding": [{"code": "laboratory | vital-signs"}]}],
-  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
   "subject": {"reference": "Patient/<id>"},
+  "status": "final | preliminary",
+  "category": [{"coding": [{"code": "laboratory | vital-signs | Output"}]}],
+  // category: "laboratory" = labs/micro, "vital-signs" = vitals, "Output" = output events (case-sensitive)
+  "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
   "effectiveDateTime": "<datetime>",
-  "valueQuantity": {"value": <n>, "unit": "<unit>"}
-  // OR "valueString": "<text>"
+  "valueQuantity": {"value": <n>, "unit": "<unit>"},
+  // OR "valueString": "<text>"  // For microbiology test results
+  "specimen": {"reference": "Specimen/<id>"}  // Present for lab and microbiology tests
 }
 
 Patient: {
   "resourceType": "Patient",
   "id": "<resource_id>",
-  "name": [{"given": ["<first>"], "family": "<last>"}],
-  "birthDate": "<date>",
-  "gender": "male | female"
+  "identifier": [{"system": "<system>", "value": "<patient_id>"}],
+  "name": [{"family": "<name>"}],
+  "gender": "male | female | other | unknown",
+  "birthDate": "<date>"
 }
 
 Procedure: {
@@ -102,17 +114,6 @@ Procedure: {
   "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
   "subject": {"reference": "Patient/<id>"},
   "performedDateTime": "<datetime>"
-}
-
-Specimen: {
-  "resourceType": "Specimen",
-  "id": "<resource_id>",
-  "type": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
-  "subject": {"reference": "Patient/<id>"},
-  "collection": {
-    "collectedDateTime": "<datetime>",
-    "bodySite": {"coding": [{"code": "<site>"}]}
-  }
 }
 """
 
@@ -193,7 +194,7 @@ def fhir_request_post(resource_type: str, params: dict) -> dict:
 
     For MedicationRequest:
         - patient_id: Patient FHIR ID
-        - medication_code: NDC code
+        - medication_code: Medication code
         - dose_value: Dose amount (e.g., 2)
         - dose_unit: Dose unit (e.g., "g")
         - rate_value: Infusion rate amount (e.g., 2)
@@ -222,4 +223,4 @@ def fhir_request_post(resource_type: str, params: dict) -> dict:
 
     logger.debug(f"FHIR POST {resource_type}: {params}")
 
-    return {"message": f"{resource_type} recorded", "params": params}
+    return {"message": f"{resource_type} recorded"}

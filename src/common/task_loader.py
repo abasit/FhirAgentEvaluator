@@ -19,12 +19,8 @@ logger = logging.getLogger("fhir_green_agent.evaluation")
 def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
     """Load tasks from CSV file."""
     tasks_df = pd.read_csv(tasks_file)[
-        # For FHIR-Agent-Bench
-        # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids"]
-        # For drug interaction
-        # ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "current_medications"]
-        # For MedAgentBench
-        ["question_id", "question", "true_answer", "assumption", "patient_fhir_id", "true_fhir_ids", "task_type", "expected_actions"]
+        ["question_id", "question", "assumption", "patient_fhir_id", "true_answer", "true_fhir_ids", "task_type",
+         "expected_actions", "current_medications"]
     ]
 
     if num_tasks:
@@ -35,7 +31,7 @@ def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
         input_str += f"\nPatient FHIR ID is {row['patient_fhir_id']}."
         if pd.notnull(row['assumption']):
             input_str += f"\n{row['assumption']}"
-        # input_str += f"Current medications include: {row['current_medications']}"
+        input_str += f"\nThe current medications are: {row['current_medications']}"
         return input_str
 
     tasks_df["question_with_context"] = tasks_df.apply(create_input_str, axis=1)

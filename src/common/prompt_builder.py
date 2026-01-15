@@ -19,7 +19,6 @@ Task instructions:
 
 RESPONSE_FORMAT = f"""
 Response format:
-- For action tasks (recording vitals, ordering medications/referrals), your final answer should confirm the action was taken, e.g., "Vital recorded" or "Referral ordered".
 - Respond in the JSON format.
 - Wrap your response in <json>...</json> tags.
 - For final answer, use: {{"name": "{RESPOND_ACTION_NAME}", "kwargs": {{"content": "The final answer is: <your answer>"}}}}
