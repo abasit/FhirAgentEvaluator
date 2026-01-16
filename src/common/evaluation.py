@@ -9,6 +9,7 @@ import ast
 import asyncio
 import logging
 
+import numpy as np
 import pandas as pd
 from dateutil import parser as date_parser
 
@@ -44,6 +45,7 @@ async def evaluate_results(
         result: TaskResult = row["result"]
         result.true_answer = row["true_answer"]
         result.correct = int(row.get("answer_correctness", 0))
+        result.true_fhir_ids = row["true_fhir_ids"]
         result.precision = row.get("precision")
         result.recall = row.get("recall")
 
@@ -79,14 +81,14 @@ def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
         result: TaskResult = row["result"]
         true_fhir_ids: dict = row["true_fhir_ids"]
 
-        if not result or not result.retrieved_fhir_resources:
+        if not result or not result.retrieved_fhir_ids:
             return []
         if not isinstance(true_fhir_ids, dict):
             return []
 
         resource_ids = []
         for resource_type in true_fhir_ids.keys():
-            resource_ids.extend(result.retrieved_fhir_resources.get(resource_type, []))
+            resource_ids.extend(result.retrieved_fhir_ids.get(resource_type, []))
         return resource_ids
 
     eval_df["agent_resource_ids"] = eval_df.apply(extract_agent_resource_ids, axis=1)
@@ -95,13 +97,19 @@ def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
     )
 
     def calc_recall(row):
-        if not row["true_fhir_ids_list"]:
-            return None
+        if row.get("task_type") == "medagentbench_action":
+            return np.nan # Exclude from averages
+        result: TaskResult = row["result"]
+        if result and result.error:  # ← Add this check
+            return np.nan  # Exclude from averages
         return retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"])
 
     def calc_precision(row):
-        if not row["true_fhir_ids_list"]:
-            return None
+        if row.get("task_type") == "medagentbench_action":
+            return np.nan # Exclude from averages
+        result: TaskResult = row["result"]
+        if result and result.error:  # ← Add this check
+            return np.nan  # Exclude from averages
         return retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"])
 
     eval_df["recall"] = eval_df.apply(calc_recall, axis=1)

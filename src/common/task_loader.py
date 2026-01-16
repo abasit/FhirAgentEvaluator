@@ -20,7 +20,7 @@ def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
     """Load tasks from CSV file."""
     tasks_df = pd.read_csv(tasks_file)[
         ["question_id", "question", "assumption", "patient_fhir_id", "true_answer", "true_fhir_ids", "task_type",
-         "expected_actions", "current_medications"]
+         "expected_actions"]
     ]
 
     if num_tasks:
@@ -31,7 +31,7 @@ def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:
         input_str += f"\nPatient FHIR ID is {row['patient_fhir_id']}."
         if pd.notnull(row['assumption']):
             input_str += f"\n{row['assumption']}"
-        input_str += f"\nThe current medications are: {row['current_medications']}"
+        # input_str += f"\nThe current medications are: {row['current_medications']}"
         return input_str
 
     tasks_df["question_with_context"] = tasks_df.apply(create_input_str, axis=1)
@@ -89,8 +89,7 @@ def make_result(
     result = TaskResult(
         final_answer=final_answer,
         tools_used=mcp_server.get_tool_logs(mcp_task_id),
-        retrieved_fhir_resources=retrieved_resource_ids,
-        trace=state.trace,
+        retrieved_fhir_ids=retrieved_resource_ids,
         iterations=state.iterations,
         error=error,
     )

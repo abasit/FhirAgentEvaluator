@@ -22,18 +22,20 @@ class ConversationState(BaseModel):
 
 class TaskResult(BaseModel):
     """Result from running a single evaluation task."""
-    question: Optional[str] = None
     question_id: Optional[str] = None
+    question: Optional[str] = None
     final_answer: Optional[str] = None
-    iterations: int = 0
-    trace: list[dict[str, Any]] = Field(default_factory=list)
-    tools_used: list[dict[str, Any]] = Field(default_factory=list)
-    retrieved_fhir_resources: dict[str, list] = Field(default_factory=dict)
     error: Optional[str] = None
+
+    # Debug info
+    iterations: int = 0
+    tools_used: list[dict[str, Any]] = Field(default_factory=list)
+    retrieved_fhir_ids: dict[str, list] = Field(default_factory=dict)
 
     # Populated after evaluation
     true_answer: Optional[str] = None
     correct: Optional[int] = None
+    true_fhir_ids: dict[str, list] = Field(default_factory=dict)
     precision: Optional[float] = None
     recall: Optional[float] = None
 

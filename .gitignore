@@ -2,6 +2,7 @@
 .env
 .python-version
 .idea
+output.json
 
 # Python-generated files
 __pycache__/
