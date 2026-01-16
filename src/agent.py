@@ -40,6 +40,7 @@ DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
 DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
+DEFAULT_TASK_TIMEOUT = 60  # seconds
 
 def format_eta(seconds: float) -> str:
     """
@@ -201,13 +202,21 @@ class Agent:
                 task_start = time.time()
                 logger.info(f"[Task {idx}] Starting")
 
-                result = await self._run_single_task(
-                    purple_agent_url=purple_agent_url,
-                    task_idx=idx,
-                    question=task.question_with_context,
-                    max_iterations=max_iterations,
-                    mcp_enabled=mcp_enabled,
-                )
+                try:
+                    result = await asyncio.wait_for(
+                        self._run_single_task(
+                            purple_agent_url=purple_agent_url,
+                            task_idx=idx,
+                            question=task.question_with_context,
+                            max_iterations=max_iterations,
+                            mcp_enabled=mcp_enabled,
+                        ),
+                        timeout=DEFAULT_TASK_TIMEOUT,
+                    )
+                except asyncio.TimeoutError:
+                    logger.error(f"[Task {idx}] Timed out after {DEFAULT_TASK_TIMEOUT}s")
+                    result = TaskResult(error=f"Task timed out after {DEFAULT_TASK_TIMEOUT}s")
+
                 result.question = task.question_with_context
                 result.question_id = task.question_id
 
@@ -218,7 +227,6 @@ class Agent:
                     logger.info(f"[Task {idx}] Completed in {elapsed:.1f}s")
 
                 return idx, result
-
         coroutines = [
             run_with_semaphore(i, task)
             for i, task in enumerate(tasks_df.itertuples(index=True))
