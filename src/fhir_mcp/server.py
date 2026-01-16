@@ -40,7 +40,7 @@ class MCPServer:
             base_url: Base URL for constructing MCP endpoint URLs
         """
         self.base_url = base_url
-        self.app = FastMCP(name="fhiragentbench-mcp", stateless_http=True, json_response=True)
+        self.app = FastMCP(name="fhiragentbench-mcp", stateless_http=True, json_response=True, host="0.0.0.0")
         self.tool_logs: dict[str, list[dict[str, Any]]] = {}
         self.task_resources: dict[str, dict[str, list]] = {}
 
