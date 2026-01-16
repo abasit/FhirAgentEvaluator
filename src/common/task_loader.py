@@ -13,7 +13,7 @@ import pandas as pd
 from common.models import ConversationState, TaskResult
 from fhir_mcp import get_mcp_server
 
-logger = logging.getLogger("fhir_green_agent.evaluation")
+logger = logging.getLogger("fhir_green_agent.task_loader")
 
 
 def load_tasks(tasks_file: str, num_tasks: int = 0) -> pd.DataFrame:

@@ -31,7 +31,7 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     if not drug_list:
         return {"error": "No drug names provided"}
 
-    logger.info(f"Fetching FDA labels for {len(drug_list)} drugs: {drug_list}")
+    logger.debug(f"Fetching FDA labels for {len(drug_list)} drugs: {drug_list}")
 
     # Fetch FDA label for each drug
     labels = {}

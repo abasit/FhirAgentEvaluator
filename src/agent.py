@@ -172,7 +172,7 @@ class Agent:
         await updater.add_artifact(
             parts=[
                 Part(root=TextPart(text=summary)),
-                Part(root=DataPart(data=eval_result.model_dump())),
+                Part(root=DataPart(data=eval_result.model_dump(exclude_none=True))),
             ],
             name="Result",
         )
@@ -200,7 +200,7 @@ class Agent:
         async def run_with_semaphore(idx: int, task) -> tuple[int, TaskResult]:
             async with semaphore:
                 task_start = time.time()
-                logger.info(f"[Task {idx}] Starting")
+                logger.debug(f"[Task {idx}] Starting")
 
                 try:
                     result = await asyncio.wait_for(
@@ -224,7 +224,7 @@ class Agent:
                 if result and result.error:
                     logger.warning(f"[Task {idx}] Failed in {elapsed:.1f}s: {result.error}")
                 else:
-                    logger.info(f"[Task {idx}] Completed in {elapsed:.1f}s")
+                    logger.debug(f"[Task {idx}] Completed in {elapsed:.1f}s")
 
                 return idx, result
         coroutines = [
@@ -242,26 +242,27 @@ class Agent:
                 else:
                     succeeded += 1
 
-                # Progress update
-                elapsed = time.time() - start_time
-                rate = completed / elapsed if elapsed > 0 else 0
-                eta = (total_tasks - completed) / rate if rate > 0 else 0
-
-                progress_msg = (
-                    f"Progress: {completed}/{total_tasks} "
-                    f"({succeeded} ok, {failed} failed) "
-                    f"ETA: {format_eta(eta)}"
-                )
-                await updater.update_status(TaskState.working, new_agent_text_message(progress_msg))
-
                 # Store result
                 tasks_df.at[tasks_df.index[idx], "result"] = result
+
+                # Progress update every 50 tasks or on completion
+                if completed % 50 == 0 or completed == total_tasks:
+                    elapsed = time.time() - start_time
+                    rate = completed / elapsed if elapsed > 0 else 0
+                    eta = (total_tasks - completed) / rate if rate > 0 else 0
+
+                    progress_msg = (
+                        f"Progress: {completed}/{total_tasks} "
+                        f"({succeeded} ok, {failed} failed) "
+                        f"ETA: {format_eta(eta)}"
+                    )
+                    logger.info(progress_msg)
+                    await updater.update_status(TaskState.working, new_agent_text_message(progress_msg))
 
             except Exception as e:
                 completed += 1
                 failed += 1
                 logger.exception(f"Task execution failed: {e}")
-
         return tasks_df
 
     async def _run_single_task(
@@ -337,7 +338,7 @@ class Agent:
             content = action_kwargs.get("content", "")
 
             if is_final_answer(content):
-                logger.info(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
+                logger.debug(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
                 return make_result(state, mcp_task_id, final_answer=content)
             else:
                 logger.warning(f"[Task {task_idx}] Response without final answer")
@@ -370,7 +371,7 @@ class Agent:
         try:
             while state.iterations < max_iterations:
                 state.iterations += 1
-                logger.info(f"[Task {task_idx}] Iteration {state.iterations}/{max_iterations}")
+                logger.debug(f"[Task {task_idx}] Iteration {state.iterations}/{max_iterations}")
 
                 # Send message and receive response
                 try:
@@ -406,14 +407,14 @@ class Agent:
                     content = action_kwargs.get("content", "")
 
                     if is_final_answer(content):
-                        logger.info(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
+                        logger.debug(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
                         return make_result(state, mcp_task_id, final_answer=content)
                     else:
                         logger.warning(f"[Task {task_idx}] Response without final answer")
                         return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
                 else:
                     tool_name, tool_args = action_name, action_kwargs
-                    logger.info(f"[Task {task_idx}] Calling tool: {tool_name} with args: {tool_args}")
+                    logger.debug(f"[Task {task_idx}] Calling tool: {tool_name} with args: {tool_args}")
 
                     try:
                         tool_output = execute_tool(tool_name, tool_args)

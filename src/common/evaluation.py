@@ -60,7 +60,14 @@ async def evaluate_results(
     )
 
     logger.info(f"Evaluation complete: {correct}/{total} correct ({correct / total * 100:.1f}%)")
-    logger.info(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
+    logger.debug(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
+
+    # Slim down task results for output (keep only essential fields)
+    keep_fields = {'question_id', 'question', 'final_answer', 'true_answer', 'correct', 'precision', 'recall', 'error'}
+    slim_results = [
+        TaskResult(**{k: v for k, v in row["result"].model_dump().items() if k in keep_fields})
+        for _, row in eval_df.iterrows()
+    ]
 
     return FHIRAgentBenchResult(
         total_tasks=total,
@@ -70,7 +77,7 @@ async def evaluate_results(
         avg_recall=avg_recall,
         f1_score=f1,
         time_used=time_used,
-        task_results=[row["result"] for _, row in eval_df.iterrows()],
+        task_results=slim_results,
     )
 
 
@@ -115,8 +122,8 @@ def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
     eval_df["recall"] = eval_df.apply(calc_recall, axis=1)
     eval_df["precision"] = eval_df.apply(calc_precision, axis=1)
 
-    logger.info(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
-    logger.info(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
+    logger.debug(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
+    logger.debug(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
 
     return eval_df
 
@@ -161,7 +168,7 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
                     )
 
             completed += 1
-            if completed % 10 == 0 or completed == total:
+            if completed % 100 == 0 or completed == total:
                 logger.info(f"Answer evaluation progress: {completed}/{total}")
 
             return idx, correctness
@@ -172,7 +179,7 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
     for idx, correctness in results:
         eval_df.at[idx, "answer_correctness"] = correctness
 
-    logger.info(f"Answer accuracy: {eval_df['answer_correctness'].mean():.4f}")
+    logger.debug(f"Answer accuracy: {eval_df['answer_correctness'].mean():.4f}")
 
     return eval_df
 
