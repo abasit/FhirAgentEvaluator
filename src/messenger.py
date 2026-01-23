@@ -120,7 +120,7 @@ class Messenger:
         self,
         message: str,
         url: str,
-        task_id: int,
+        task_id: str,
         new_conversation: bool = False,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> str:

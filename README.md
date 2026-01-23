@@ -36,7 +36,7 @@ The benchmark combines and augments tasks from two established medical agent ben
 │   │   ├── fhir_client.py           # FHIR server HTTP client
 │   │   ├── models.py                # Result and task dataclasses
 │   │   ├── prompt_builder.py        # Task prompt construction
-│   │   └── task_loader.py           # CSV loading, response parsing
+│   │   └── utils.py                # CSV loading, response parsing
 │   │
 │   └── fhir_mcp/                    # MCP server and agent-callable tools
 │       ├── server.py                # MCP server with task-scoped storage

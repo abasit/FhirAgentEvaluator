@@ -24,10 +24,10 @@ from a2a.types import Message, TaskState, Part, TextPart, DataPart
 from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
-from common.models import EvalRequest, TaskResult, ConversationState
+from common.models import EvalRequest, TaskResult, ConversationState, Task
 from common.evaluation import evaluate_results
 from common.prompt_builder import build_task_prompt_messaging, RESPOND_ACTION_NAME, build_task_prompt_mcp
-from common.task_loader import load_tasks, make_result, is_final_answer, parse_agent_response
+from common.utils import load_tasks, make_result, is_final_answer, parse_agent_response, format_time
 from fhir_mcp import verify_tool_access, execute_tool
 from fhir_mcp.server import current_task_id
 
@@ -42,20 +42,6 @@ DEFAULT_MAX_CONCURRENT = 3
 DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
 DEFAULT_TASK_TIMEOUT = 60  # seconds
 
-def format_eta(seconds: float) -> str:
-    """
-    Format an ETA in seconds into a human-readable string.
-    """
-    seconds = int(seconds)
-    if seconds < 60:
-        return f"{seconds}s"
-
-    minutes, seconds = divmod(seconds, 60)
-    if minutes < 60:
-        return f"{minutes}m {seconds}s"
-
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours}h {minutes}m"
 
 class Agent:
     """
@@ -118,8 +104,8 @@ class Agent:
         logger.info("FHIR database connected")
 
         # Load tasks
-        tasks_df = load_tasks(tasks_file, num_tasks)
-        total_tasks = len(tasks_df)
+        tasks = load_tasks(tasks_file, num_tasks)
+        total_tasks = len(tasks)
 
         await updater.update_status(TaskState.working, new_agent_text_message(f"Loaded {total_tasks} tasks"))
         logger.info(f"Loaded {total_tasks} tasks")
@@ -136,8 +122,8 @@ class Agent:
         start_time = time.time()
 
         # Run all tasks
-        results_df = await self._run_all_tasks(
-            tasks_df=tasks_df,
+        tasks = await self._run_all_tasks(
+            tasks=tasks,
             purple_agent_url=purple_agent_url,
             max_iterations=max_iterations,
             mcp_enabled=mcp_enabled,
@@ -146,32 +132,22 @@ class Agent:
         )
 
         time_used = time.time() - start_time
-        logger.info(f"Task execution completed in {time_used:.1f}s")
+        logger.info(f"Task execution completed in {format_time(time_used)}")
 
         # Run evaluation
         await updater.update_status(TaskState.working, new_agent_text_message("Evaluating results..."))
 
         eval_result = await evaluate_results(
-            tasks_df=results_df,
+            tasks=tasks,
             eval_model=eval_model,
             max_concurrent=max_concurrent,
             time_used=time_used,
         )
 
         # Report results
-        summary = (
-            f"Evaluation complete:\n"
-            f"- Total tasks: {eval_result.total_tasks}\n"
-            f"- Correct answers: {eval_result.correct_answers} ({eval_result.accuracy * 100:.1f}%)\n"
-            f"- Precision: {eval_result.avg_precision:.4f}\n"
-            f"- Recall: {eval_result.avg_recall:.4f}\n"
-            f"- F1 Score: {eval_result.f1_score:.4f}\n"
-            f"- Time: {eval_result.time_used:.1f}s"
-        )
-
         await updater.add_artifact(
             parts=[
-                Part(root=TextPart(text=summary)),
+                Part(root=TextPart(text=eval_result.summary())),
                 Part(root=DataPart(data=eval_result.model_dump(exclude_none=True))),
             ],
             name="Result",
@@ -179,17 +155,15 @@ class Agent:
 
     async def _run_all_tasks(
             self,
-            tasks_df: pd.DataFrame,
+            tasks: list[Task],
             purple_agent_url: str,
             max_iterations: int,
             mcp_enabled: bool,
             max_concurrent: int,
             updater: TaskUpdater,
-    ) -> pd.DataFrame:
+    ) -> list[Task]:
         """Run all tasks concurrently with progress updates."""
-        tasks_df["result"] = None
-
-        total_tasks = len(tasks_df)
+        total_tasks = len(tasks)
         semaphore = asyncio.Semaphore(max_concurrent)
 
         completed = 0
@@ -197,79 +171,62 @@ class Agent:
         failed = 0
         start_time = time.time()
 
-        async def run_with_semaphore(idx: int, task) -> tuple[int, TaskResult]:
+        async def run_with_semaphore(task: Task) -> None:
+            nonlocal completed, succeeded, failed
+
             async with semaphore:
                 task_start = time.time()
-                logger.debug(f"[Task {idx}] Starting")
+                logger.debug(f"[{task.question_id}] Starting")
 
                 try:
                     result = await asyncio.wait_for(
                         self._run_single_task(
                             purple_agent_url=purple_agent_url,
-                            task_idx=idx,
-                            question=task.question_with_context,
+                            task=task,
                             max_iterations=max_iterations,
                             mcp_enabled=mcp_enabled,
                         ),
                         timeout=DEFAULT_TASK_TIMEOUT,
                     )
                 except asyncio.TimeoutError:
-                    logger.error(f"[Task {idx}] Timed out after {DEFAULT_TASK_TIMEOUT}s")
+                    logger.error(f"[{task.question_id}] Timed out after {DEFAULT_TASK_TIMEOUT}s")
                     result = TaskResult(error=f"Task timed out after {DEFAULT_TASK_TIMEOUT}s")
+                except Exception as e:
+                    logger.exception(f"[{task.question_id}] Unexpected error: {e}")
+                    result = TaskResult(error=f"Unexpected error: {e}")
 
-                result.question = task.question_with_context
-                result.question_id = task.question_id
+                task.result = result
 
                 elapsed = time.time() - task_start
-                if result and result.error:
-                    logger.warning(f"[Task {idx}] Failed in {elapsed:.1f}s: {result.error}")
-                else:
-                    logger.debug(f"[Task {idx}] Completed in {elapsed:.1f}s")
-
-                return idx, result
-        coroutines = [
-            run_with_semaphore(i, task)
-            for i, task in enumerate(tasks_df.itertuples(index=True))
-        ]
-
-        for coro in asyncio.as_completed(coroutines):
-            try:
-                idx, result = await coro
-                completed += 1
-
                 if result.error:
                     failed += 1
+                    logger.warning(f"[{task.question_id}] Failed in {elapsed:.1f}s: {result.error}")
                 else:
                     succeeded += 1
+                    logger.debug(f"[{task.question_id}] Completed in {elapsed:.1f}s")
 
-                # Store result
-                tasks_df.at[tasks_df.index[idx], "result"] = result
-
-                # Progress update every 50 tasks or on completion
+                completed += 1
                 if completed % 50 == 0 or completed == total_tasks:
-                    elapsed = time.time() - start_time
-                    rate = completed / elapsed if elapsed > 0 else 0
+                    elapsed_total = time.time() - start_time
+                    rate = completed / elapsed_total if elapsed_total > 0 else 0
                     eta = (total_tasks - completed) / rate if rate > 0 else 0
 
                     progress_msg = (
                         f"Progress: {completed}/{total_tasks} "
                         f"({succeeded} ok, {failed} failed) "
-                        f"ETA: {format_eta(eta)}"
+                        f"ETA: {format_time(eta)}"
                     )
                     logger.info(progress_msg)
                     await updater.update_status(TaskState.working, new_agent_text_message(progress_msg))
 
-            except Exception as e:
-                completed += 1
-                failed += 1
-                logger.exception(f"Task execution failed: {e}")
-        return tasks_df
+        await asyncio.gather(*[run_with_semaphore(task) for task in tasks])
+
+        return tasks
 
     async def _run_single_task(
             self,
             purple_agent_url: str,
-            task_idx: int,
-            question: str,
+            task: Task,
             max_iterations: int,
             mcp_enabled: bool,
     ) -> TaskResult:
@@ -277,22 +234,19 @@ class Agent:
         if mcp_enabled:
             return await self._run_single_task_mcp(
                 purple_agent_url=purple_agent_url,
-                task_idx=task_idx,
-                question=question,
+                task=task,
             )
         else:
             return await self._run_single_task_messaging(
                 purple_agent_url=purple_agent_url,
-                task_idx=task_idx,
-                question=question,
+                task=task,
                 max_iterations=max_iterations,
             )
 
     async def _run_single_task_mcp(
             self,
             purple_agent_url: str,
-            task_idx: int,
-            question: str,
+            task: Task,
     ) -> TaskResult:
         """Run task in MCP mode - agent connects to MCP server for tools."""
         state = ConversationState()
@@ -300,34 +254,34 @@ class Agent:
         mcp_task_id = str(uuid4())
         system_prompt = build_task_prompt_mcp(mcp_task_id)
 
-        state.trace.append({"role": "task prompt", "content": question})
+        state.trace.append({"role": "task prompt", "content": task.question_with_context})
 
-        message_content = f"{system_prompt}\n\n{question}"
+        message_content = f"{system_prompt}\n\n{task.question_with_context}"
 
         # Send message and receive response
         try:
             state.iterations += 1
-            logger.debug(f"[Task {task_idx}] Sending:\n{message_content}")
+            logger.debug(f"[Task {task.question_id}] Sending:\n{message_content}")
 
             response_text = await self.messenger.talk_to_agent(
                 message=message_content,
                 url=purple_agent_url,
-                task_id=task_idx,
+                task_id=task.question_id,
                 new_conversation=True,
             )
 
             state.trace.append({"role": "agent", "content": response_text})
-            logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
+            logger.debug(f"[Task {task.question_id}] Received:\n{response_text}")
         except Exception as e:
-            logger.error(f"[Task {task_idx}] Communication error: {e}")
+            logger.error(f"[Task {task.question_id}] Communication error: {e}")
             return make_result(state, mcp_task_id, error=f"Error communicating with purple agent")
 
         # Parse response
         try:
             parsed_response = parse_agent_response(response_text)
-            logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
+            logger.debug(f"[Task {task.question_id}] Parsed response: {parsed_response}")
         except json.JSONDecodeError as e:
-            logger.error(f"[Task {task_idx}] Parse error: {e}")
+            logger.error(f"[Task {task.question_id}] Parse error: {e}")
             return make_result(state, mcp_task_id, error=f"Failed to parse purple agent response:\n{response_text}")
 
         action = parsed_response[0] if parsed_response else {}
@@ -338,20 +292,19 @@ class Agent:
             content = action_kwargs.get("content", "")
 
             if is_final_answer(content):
-                logger.debug(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
+                logger.debug(f"[Task {task.question_id}] Got final answer after {state.iterations} iterations")
                 return make_result(state, mcp_task_id, final_answer=content)
             else:
-                logger.warning(f"[Task {task_idx}] Response without final answer")
+                logger.warning(f"[Task {task.question_id}] Response without final answer")
                 return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
 
-        logger.warning(f"[Task {task_idx}] Unknown action: {action_name}")
-        return make_result(state, mcp_task_id, error=f"Unknown action: {action_name}")
+        logger.warning(f"[Task {task.question_id}] Unexpected action \"{action_name}\" for MCP mode")
+        return make_result(state, mcp_task_id, error=f"[Task {task.question_id}] Unexpected action \"{action_name}\" for MCP mode")
 
     async def _run_single_task_messaging(
             self,
             purple_agent_url: str,
-            task_idx: int,
-            question: str,
+            task : Task,
             max_iterations: int,
     ) -> TaskResult:
         """Run task in messaging mode - green agent executes tools iteratively."""
@@ -363,40 +316,40 @@ class Agent:
 
         system_prompt = await build_task_prompt_messaging()
 
-        state.trace.append({"role": "task prompt", "content": question})
+        state.trace.append({"role": "task prompt", "content": task.question_with_context})
 
-        message_content = f"{system_prompt}\n\n{question}"
+        message_content = f"{system_prompt}\n\n{task.question_with_context}"
         is_first_message = True
 
         try:
             while state.iterations < max_iterations:
                 state.iterations += 1
-                logger.debug(f"[Task {task_idx}] Iteration {state.iterations}/{max_iterations}")
+                logger.debug(f"[Task {task.question_id}] Iteration {state.iterations}/{max_iterations}")
 
                 # Send message and receive response
                 try:
-                    logger.debug(f"[Task {task_idx}] Sending:\n{message_content}")
+                    logger.debug(f"[Task {task.question_id}] Sending:\n{message_content}")
 
                     response_text = await self.messenger.talk_to_agent(
                         message=message_content,
                         url=purple_agent_url,
-                        task_id=task_idx,
+                        task_id=task.question_id,
                         new_conversation=is_first_message,
                     )
                     is_first_message = False
 
                     state.trace.append({"role": "agent", "content": response_text})
-                    logger.debug(f"[Task {task_idx}] Received:\n{response_text}")
+                    logger.debug(f"[Task {task.question_id}] Received:\n{response_text}")
                 except Exception as e:
-                    logger.error(f"[Task {task_idx}] Communication error: {e}")
+                    logger.error(f"[Task {task.question_id}] Communication error: {e}")
                     return make_result(state, mcp_task_id, error=f"Error communicating with purple agent")
 
                 # Parse response
                 try:
                     parsed_response = parse_agent_response(response_text)
-                    logger.debug(f"[Task {task_idx}] Parsed response: {parsed_response}")
+                    logger.debug(f"[Task {task.question_id}] Parsed response: {parsed_response}")
                 except json.JSONDecodeError as e:
-                    logger.error(f"[Task {task_idx}] Parse error: {e}")
+                    logger.error(f"[Task {task.question_id}] Parse error: {e}")
                     return make_result(state, mcp_task_id, error=f"Failed to parse purple agent response:\n{response_text}")
 
                 action = parsed_response[0] if parsed_response else {}
@@ -407,26 +360,26 @@ class Agent:
                     content = action_kwargs.get("content", "")
 
                     if is_final_answer(content):
-                        logger.debug(f"[Task {task_idx}] Got final answer after {state.iterations} iterations")
+                        logger.debug(f"[Task {task.question_id}] Got final answer after {state.iterations} iterations")
                         return make_result(state, mcp_task_id, final_answer=content)
                     else:
-                        logger.warning(f"[Task {task_idx}] Response without final answer")
+                        logger.warning(f"[Task {task.question_id}] Response without final answer")
                         return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
                 else:
                     tool_name, tool_args = action_name, action_kwargs
-                    logger.debug(f"[Task {task_idx}] Calling tool: {tool_name} with args: {tool_args}")
+                    logger.debug(f"[Task {task.question_id}] Calling tool: {tool_name} with args: {tool_args}")
 
                     try:
                         tool_output = execute_tool(tool_name, tool_args)
                         tool_output_str = str(tool_output)
-                        logger.debug(f"[Task {task_idx}] Tool returned:\n{tool_output_str}")
+                        logger.debug(f"[Task {task.question_id}] Tool returned:\n{tool_output_str}")
                         message_content = tool_output_str
                         state.trace.append({"role": "tool call result", "content": message_content})
                     except Exception as e:
-                        logger.error(f"[Task {task_idx}] Tool {tool_name} failed: {e}")
+                        logger.error(f"[Task {task.question_id}] Tool {tool_name} failed: {e}")
                         return make_result(state, mcp_task_id, error=f"Tool execution failed")
 
-            logger.warning(f"[Task {task_idx}] Max iterations ({max_iterations}) reached")
+            logger.warning(f"[Task {task.question_id}] Max iterations ({max_iterations}) reached")
             return make_result(state, mcp_task_id, error="Max iterations reached")
 
         finally:

@@ -5,68 +5,63 @@ Handles retrieval metrics (precision/recall), answer correctness (LLM-based),
 and action validation for MedAgentBench tasks.
 """
 
-import ast
 import asyncio
 import logging
 
-import numpy as np
-import pandas as pd
 from dateutil import parser as date_parser
 
 from common.eval_metrics import retrieval_recall, retrieval_precision, check_answer_correctness
-from common.models import FHIRAgentBenchResult, TaskResult
+from common.models import FHIRAgentBenchResult, Task, TaskOutput
 
 logger = logging.getLogger("fhir_green_agent.evaluation")
 
 
 async def evaluate_results(
-        tasks_df: pd.DataFrame,
+        tasks: list[Task],
         time_used: float,
         eval_model: str,
         max_concurrent: int,
 ) -> FHIRAgentBenchResult:
     """Run full evaluation pipeline and return aggregated results."""
-    eval_df = tasks_df.copy()
-
-    eval_df["true_fhir_ids"] = eval_df["true_fhir_ids"].apply(
-        lambda x: ast.literal_eval(x) if isinstance(x, str) and x else {}
-    )
-    eval_df["expected_actions"] = eval_df["expected_actions"].apply(
-        lambda x: ast.literal_eval(x) if isinstance(x, str) and x else []
-    )
 
     logger.info("Calculating retrieval metrics")
-    eval_df = _calculate_retrieval_metrics(eval_df)
+    _calculate_retrieval_metrics(tasks)
 
     logger.info("Calculating answer metrics")
-    eval_df = await _calculate_answer_metrics(eval_df, eval_model, max_concurrent)
+    await _calculate_answer_metrics(tasks, eval_model, max_concurrent)
 
-    for idx, row in eval_df.iterrows():
-        result: TaskResult = row["result"]
-        result.true_answer = row["true_answer"]
-        result.correct = int(row.get("answer_correctness", 0))
-        result.true_fhir_ids = row["true_fhir_ids"]
-        result.precision = row.get("precision")
-        result.recall = row.get("recall")
+    # Calculate aggregates
+    total = len(tasks)
+    correct = sum(1 for t in tasks if t.result and t.result.correct == 1)
 
-    total = len(eval_df)
-    correct = int(eval_df["answer_correctness"].sum())
-    avg_precision = eval_df["precision"].mean()
-    avg_recall = eval_df["recall"].mean()
+    precision_values = [t.result.precision for t in tasks if t.result and t.result.precision is not None]
+    recall_values = [t.result.recall for t in tasks if t.result and t.result.recall is not None]
+
+    avg_precision = sum(precision_values) / len(precision_values) if precision_values else 0.0
+    avg_recall = sum(recall_values) / len(recall_values) if recall_values else 0.0
+
     f1 = (
         2 * (avg_precision * avg_recall) / (avg_precision + avg_recall)
         if (avg_precision + avg_recall) > 0
-        else 0
+        else 0.0
     )
 
     logger.info(f"Evaluation complete: {correct}/{total} correct ({correct / total * 100:.1f}%)")
     logger.debug(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
 
-    # Slim down task results for output (keep only essential fields)
-    keep_fields = {'question_id', 'question', 'final_answer', 'true_answer', 'correct', 'precision', 'recall', 'error'}
-    slim_results = [
-        TaskResult(**{k: v for k, v in row["result"].model_dump().items() if k in keep_fields})
-        for _, row in eval_df.iterrows()
+    # Build output
+    task_outputs = [
+        TaskOutput(
+            question_id=task.question_id,
+            question=task.question_with_context,
+            true_answer=task.true_answer,
+            final_answer=task.result.final_answer if task.result else None,
+            correct=task.result.correct if task.result else None,
+            precision=task.result.precision if task.result else None,
+            recall=task.result.recall if task.result else None,
+            error=task.result.error if task.result else None,
+        )
+        for task in tasks
     ]
 
     return FHIRAgentBenchResult(
@@ -77,83 +72,73 @@ async def evaluate_results(
         avg_recall=avg_recall,
         f1_score=f1,
         time_used=time_used,
-        task_results=slim_results,
+        task_results=task_outputs,
     )
 
 
-def _calculate_retrieval_metrics(eval_df: pd.DataFrame) -> pd.DataFrame:
+def _calculate_retrieval_metrics(tasks: list[Task]) -> None:
     """Calculate retrieval precision and recall, excluding action-only tasks."""
 
-    def extract_agent_resource_ids(row) -> list[str]:
-        result: TaskResult = row["result"]
-        true_fhir_ids: dict = row["true_fhir_ids"]
+    for task in tasks:
+        result = task.result
+        if not result:
+            continue
 
-        if not result or not result.retrieved_fhir_ids:
-            return []
-        if not isinstance(true_fhir_ids, dict):
-            return []
+        # Skip action-only tasks and errored tasks
+        if task.task_type == "medagentbench_action" or result.error:
+            result.precision = None
+            result.recall = None
+            continue
 
-        resource_ids = []
-        for resource_type in true_fhir_ids.keys():
-            resource_ids.extend(result.retrieved_fhir_ids.get(resource_type, []))
-        return resource_ids
+        # Extract agent's retrieved IDs for relevant resource types
+        agent_ids = []
+        for resource_type in task.true_fhir_ids.keys():
+            agent_ids.extend(result.retrieved_fhir_ids.get(resource_type, []))
 
-    eval_df["agent_resource_ids"] = eval_df.apply(extract_agent_resource_ids, axis=1)
-    eval_df["true_fhir_ids_list"] = eval_df["true_fhir_ids"].apply(
-        lambda d: sum(d.values(), []) if isinstance(d, dict) else []
-    )
+        # Flatten true IDs
+        true_ids = sum(task.true_fhir_ids.values(), [])
 
-    def calc_recall(row):
-        if row.get("task_type") == "medagentbench_action":
-            return np.nan # Exclude from averages
-        result: TaskResult = row["result"]
-        if result and result.error:  # ← Add this check
-            return np.nan  # Exclude from averages
-        return retrieval_recall(row["agent_resource_ids"], row["true_fhir_ids_list"])
+        result.recall = retrieval_recall(agent_ids, true_ids)
+        result.precision = retrieval_precision(agent_ids, true_ids)
 
-    def calc_precision(row):
-        if row.get("task_type") == "medagentbench_action":
-            return np.nan # Exclude from averages
-        result: TaskResult = row["result"]
-        if result and result.error:  # ← Add this check
-            return np.nan  # Exclude from averages
-        return retrieval_precision(row["agent_resource_ids"], row["true_fhir_ids_list"])
+    precision_values = [t.result.precision for t in tasks if t.result and t.result.precision is not None]
+    recall_values = [t.result.recall for t in tasks if t.result and t.result.recall is not None]
 
-    eval_df["recall"] = eval_df.apply(calc_recall, axis=1)
-    eval_df["precision"] = eval_df.apply(calc_precision, axis=1)
-
-    logger.debug(f"Retrieval Precision: {eval_df['precision'].mean():.4f}")
-    logger.debug(f"Retrieval Recall: {eval_df['recall'].mean():.4f}")
-
-    return eval_df
+    logger.debug(f"Retrieval Precision: {sum(precision_values) / len(precision_values) if precision_values else 0:.4f}")
+    logger.debug(f"Retrieval Recall: {sum(recall_values) / len(recall_values) if recall_values else 0:.4f}")
 
 
-async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concurrent: int) -> pd.DataFrame:
+async def _calculate_answer_metrics(
+        tasks: list[Task],
+        model: str,
+        max_concurrent: int,
+) -> None:
     """Calculate answer correctness using LLM evaluation or action validation."""
     semaphore = asyncio.Semaphore(max_concurrent)
-    total = len(eval_df)
+    total = len(tasks)
     completed = 0
 
-    async def check_single_answer(idx: int, row) -> tuple[int, int]:
+    async def check_single_answer(task: Task) -> None:
         nonlocal completed
         async with semaphore:
-            result: TaskResult = row["result"]
-            task_type = row.get("task_type", "")
-            expected_actions = row.get("expected_actions", [])
+            result = task.result
+            if not result:
+                completed += 1
+                return
 
-            if task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
-                action_correct = _evaluate_action_task(expected_actions, result)
+            if task.task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
+                action_correct = _evaluate_action_task(task.expected_actions, result)
                 if not action_correct:
                     correctness = 0
-                elif task_type == "medagentbench_action":
+                elif task.task_type == "medagentbench_action":
                     correctness = 0 if result.error else 1
                 elif result.error or not result.final_answer:
                     correctness = 0
                 else:
                     correctness = await check_answer_correctness(
                         answer=result.final_answer,
-                        ref_answer=str(row["true_answer"]),
-                        question=row["question"],
+                        ref_answer=str(task.true_answer),
+                        question=task.question_with_context,
                         model=model,
                     )
             else:
@@ -162,32 +147,27 @@ async def _calculate_answer_metrics(eval_df: pd.DataFrame, model: str, max_concu
                 else:
                     correctness = await check_answer_correctness(
                         answer=result.final_answer,
-                        ref_answer=row["true_answer"],
-                        question=row["question"],
+                        ref_answer=task.true_answer,
+                        question=task.question_with_context,
                         model=model,
                     )
+
+            result.correct = correctness
 
             completed += 1
             if completed % 100 == 0 or completed == total:
                 logger.info(f"Answer evaluation progress: {completed}/{total}")
 
-            return idx, correctness
+    await asyncio.gather(*[check_single_answer(task) for task in tasks])
 
-    tasks = [check_single_answer(idx, row) for idx, row in eval_df.iterrows()]
-    results = await asyncio.gather(*tasks)
-
-    for idx, correctness in results:
-        eval_df.at[idx, "answer_correctness"] = correctness
-
-    logger.debug(f"Answer accuracy: {eval_df['answer_correctness'].mean():.4f}")
-
-    return eval_df
+    correct_count = sum(1 for t in tasks if t.result and t.result.correct == 1)
+    logger.debug(f"Answer accuracy: {correct_count / len(tasks):.4f}")
 
 
-def _evaluate_action_task(expected_actions: list, task_result: TaskResult) -> int:
+def _evaluate_action_task(expected_actions: list, result) -> int:
     """Check if POST requests match expected actions (1=match, 0=mismatch)."""
     post_requests = [
-        t["args"] for t in task_result.tools_used
+        t["args"] for t in result.tools_used
         if t.get("tool") == "fhir_request_post"
     ]
 
@@ -228,19 +208,15 @@ def _values_match(actual, expected, field_name: str = None) -> bool:
     if actual is None or expected is None:
         return False
 
-    # note_contains: check all substrings present
     if field_name == "note_contains" and isinstance(expected, list) and isinstance(actual, str):
         return all(substring in actual for substring in expected)
 
-    # note: substring match
     if field_name == "note" and isinstance(expected, str) and isinstance(actual, str):
         return expected in actual
 
-    # Numeric comparison
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float)):
         return float(actual) == float(expected)
 
-    # String comparison - try datetime parsing
     if isinstance(expected, str) and isinstance(actual, str):
         try:
             actual_dt = date_parser.parse(actual)
@@ -250,11 +226,9 @@ def _values_match(actual, expected, field_name: str = None) -> bool:
             pass
         return actual.strip() == expected.strip()
 
-    # Recursive for dicts
     if isinstance(expected, dict) and isinstance(actual, dict):
         return _dict_match(actual, expected)
 
-    # Recursive for lists
     if isinstance(expected, list) and isinstance(actual, list):
         if len(actual) != len(expected):
             return False

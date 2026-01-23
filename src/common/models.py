@@ -6,6 +6,7 @@ Defines request/response schemas and result structures used throughout evaluatio
 
 from typing import Any, Optional
 from pydantic import BaseModel, HttpUrl, Field
+from common.utils import format_time
 
 
 class EvalRequest(BaseModel):
@@ -22,8 +23,6 @@ class ConversationState(BaseModel):
 
 class TaskResult(BaseModel):
     """Result from running a single evaluation task."""
-    question_id: Optional[str] = None
-    question: Optional[str] = None
     final_answer: Optional[str] = None
     error: Optional[str] = None
 
@@ -33,11 +32,32 @@ class TaskResult(BaseModel):
     retrieved_fhir_ids: dict[str, list] = Field(default_factory=dict)
 
     # Populated after evaluation
-    true_answer: Optional[str] = None
     correct: Optional[int] = None
-    true_fhir_ids: dict[str, list] = Field(default_factory=dict)
     precision: Optional[float] = None
     recall: Optional[float] = None
+
+
+class Task(BaseModel):
+    """A single evaluation task."""
+    question_id: str
+    question_with_context: str
+    true_answer: str
+    true_fhir_ids: dict[str, list] = Field(default_factory=dict)
+    task_type: str
+    expected_actions: list[dict] = Field(default_factory=list)
+    result: Optional[TaskResult] = None
+
+
+class TaskOutput(BaseModel):
+    """Flattened task + result for final output."""
+    question_id: str
+    question: str
+    true_answer: str
+    final_answer: Optional[str] = None
+    correct: Optional[int] = None
+    precision: Optional[float] = None
+    recall: Optional[float] = None
+    error: Optional[str] = None
 
 
 class FHIRAgentBenchResult(BaseModel):
@@ -49,4 +69,15 @@ class FHIRAgentBenchResult(BaseModel):
     avg_recall: float
     f1_score: float
     time_used: float
-    task_results: list[TaskResult]
+    task_results: list[TaskOutput]
+
+    def summary(self) -> str:
+        return (
+            f"Evaluation complete:\n"
+            f"- Total tasks: {self.total_tasks}\n"
+            f"- Correct answers: {self.correct_answers} ({self.accuracy * 100:.1f}%)\n"
+            f"- Precision: {self.avg_precision:.4f}\n"
+            f"- Recall: {self.avg_recall:.4f}\n"
+            f"- F1 Score: {self.f1_score:.4f}\n"
+            f"- Time: {format_time(self.time_used)}"
+        )
