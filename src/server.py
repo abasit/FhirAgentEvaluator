@@ -7,6 +7,8 @@ Exposes an agent card and MCP tools for participant agents.
 
 import argparse
 import logging
+import os
+
 import uvicorn
 from mcp.server.auth import settings
 from starlette.applications import Starlette
@@ -21,6 +23,7 @@ from executor import Executor
 from fhir_mcp import init_mcp_server
 
 logging_level = logging.INFO
+os.environ["DEBUG_TRACES"] = "True"
 
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger("fhir_green_agent").setLevel(logging_level)

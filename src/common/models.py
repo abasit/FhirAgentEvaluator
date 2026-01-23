@@ -27,6 +27,7 @@ class TaskResult(BaseModel):
 
     # Debug info
     iterations: int = 0
+    trace: list[dict[str, Any]] = Field(default_factory=list)
     tools_used: list[dict[str, Any]] = Field(default_factory=list)
     retrieved_fhir_ids: dict[str, list] = Field(default_factory=dict)
 

@@ -98,6 +98,7 @@ def make_result(
 
     result = TaskResult(
         final_answer=final_answer,
+        trace=state.trace,
         tools_used=mcp_server.get_tool_logs(mcp_task_id),
         retrieved_fhir_ids=retrieved_resource_ids,
         iterations=state.iterations,

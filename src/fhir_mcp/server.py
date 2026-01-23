@@ -72,9 +72,9 @@ class MCPServer:
             "result": result,
         })
         if result.get("error"):
-            logger.warning(f"[{task_id}] Tool call failure: {tool_name}, arguments: {args}, result: {result}")
+            logger.warning(f"[Task {task_id}] Tool call failure: {tool_name}, arguments: {args}, result: {result}")
         else:
-            logger.debug(f"[{task_id}] Tool call: {tool_name}, arguments: {args}, result: {result}")
+            logger.debug(f"[Task {task_id}] Tool call: {tool_name}, arguments: {args}, result: {result}")
 
     def merge_task_resources(self, resources: dict[str, list]) -> None:
         """Merge resources into task-scoped storage for the current task."""
@@ -101,7 +101,7 @@ class MCPServer:
         """Clear all stored data for a completed task."""
         self.tool_logs.pop(task_id, None)
         self.task_resources.pop(task_id, None)
-        logger.debug(f"Cleared data for task {task_id}")
+        logger.debug(f"[Task {task_id}] Cleared data for task.")
 
     def get_routes(self) -> Mount:
         """Create Starlette routes for the MCP server at /tasks/{task_id}/mcp."""
