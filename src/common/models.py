@@ -6,7 +6,6 @@ Defines request/response schemas and result structures used throughout evaluatio
 
 from typing import Any, Optional
 from pydantic import BaseModel, HttpUrl, Field
-from common.utils import format_time
 
 
 class EvalRequest(BaseModel):
@@ -72,6 +71,7 @@ class FHIRAgentBenchResult(BaseModel):
     task_results: list[TaskOutput]
 
     def summary(self) -> str:
+        from common.utils import format_time  # lazy import
         return (
             f"Evaluation complete:\n"
             f"- Total tasks: {self.total_tasks}\n"
