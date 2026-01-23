@@ -7,6 +7,7 @@ retrieved via fhir_request_get. Resources are available in the
 """
 
 import json
+import signal
 import traceback
 
 
@@ -28,6 +29,9 @@ def _normalize_retrieved_resources(resources: dict) -> dict:
 
     return normalized
 
+
+
+EXEC_TIMEOUT = 60  # seconds
 
 def execute_python_code(code: str) -> dict:
     """
@@ -54,34 +58,49 @@ def execute_python_code(code: str) -> dict:
         - json, re, datetime, math, statistics modules
     """
 
+    def timeout_handler(signum, frame):
+        raise TimeoutError(f"Code execution timed out after {EXEC_TIMEOUT}s")
+
     try:
-        exec_globals = {
-            'json': json,
-            're': __import__('re'),
-            'datetime': __import__('datetime'),
-            'math': __import__('math'),
-            'statistics': __import__('statistics'),
-            'answer': None,
-        }
+        # Set timeout
+        original_handler = signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(EXEC_TIMEOUT)
 
-        from fhir_mcp import get_mcp_server
-        mcp_server = get_mcp_server()
-        resources = mcp_server.get_task_resources()
+        try:
+            exec_globals = {
+                'json': json,
+                're': __import__('re'),
+                'datetime': __import__('datetime'),
+                'math': __import__('math'),
+                'statistics': __import__('statistics'),
+                'answer': None,
+            }
 
-        if isinstance(resources, dict):
-            resources = _normalize_retrieved_resources(resources)
+            from fhir_mcp import get_mcp_server
+            mcp_server = get_mcp_server()
+            resources = mcp_server.get_task_resources()
 
-        exec_globals['retrieved_resources'] = resources
+            if isinstance(resources, dict):
+                resources = _normalize_retrieved_resources(resources)
 
-        exec(code, exec_globals)
+            exec_globals['retrieved_resources'] = resources
 
-        answer = exec_globals.get('answer', None)
+            exec(code, exec_globals)
 
-        if answer is not None:
-            return {"answer": answer}
-        else:
-            return {"error": "Code executed successfully (no answer variable set)"}
+            answer = exec_globals.get('answer', None)
 
+            if answer is not None:
+                return {"answer": answer}
+            else:
+                return {"error": "Code executed successfully (no answer variable set)"}
+
+        finally:
+            # Always cancel alarm and restore handler
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, original_handler)
+
+    except TimeoutError:
+        return {"error": f"Code execution timed out after {EXEC_TIMEOUT}s"}
     except Exception as e:
         error_info = traceback.format_exc()
         return {"error": f"Error executing code: {e}\n\nFull traceback:\n{error_info}"}
