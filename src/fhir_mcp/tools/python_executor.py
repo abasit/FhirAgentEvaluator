@@ -7,10 +7,7 @@ retrieved via fhir_request_get. Resources are available in the
 """
 
 import json
-import logging
 import traceback
-
-logger = logging.getLogger(__name__)
 
 
 def _normalize_retrieved_resources(resources: dict) -> dict:
@@ -56,7 +53,6 @@ def execute_python_code(code: str) -> dict:
         - retrieved_resources: dict of resource_type -> list of FHIR resources
         - json, re, datetime, math, statistics modules
     """
-    logger.debug(f"Executing code:\n{code}")
 
     try:
         exec_globals = {
@@ -77,20 +73,15 @@ def execute_python_code(code: str) -> dict:
 
         exec_globals['retrieved_resources'] = resources
 
-        logger.debug(f"Available resources: {list(resources.keys())}")
-
         exec(code, exec_globals)
 
         answer = exec_globals.get('answer', None)
 
         if answer is not None:
-            logger.debug(f"Code result: {answer}")
             return {"answer": answer}
         else:
-            logger.warning("Code executed but no answer variable set")
             return {"error": "Code executed successfully (no answer variable set)"}
 
     except Exception as e:
         error_info = traceback.format_exc()
-        logger.warning(f"Code execution failed: {e}")
         return {"error": f"Error executing code: {e}\n\nFull traceback:\n{error_info}"}

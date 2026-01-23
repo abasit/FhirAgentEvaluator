@@ -6,11 +6,8 @@ ICD diagnoses, ICD procedures) to help agents find codes for FHIR queries.
 """
 
 import os
-import logging
 
 import pandas as pd
-
-logger = logging.getLogger(__name__)
 
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 CODES_DIR = os.path.join(TOOLS_DIR, "codes_dataset")
@@ -38,8 +35,6 @@ def lookup_medical_code(search_term: str, code_type: str) -> dict:
     Returns:
         dict with "codes": list of {"code": "<code>", "display": "<name>"}
     """
-    logger.debug(f"Looking up medical code {search_term} of type {code_type}")
-
     try:
         if code_type not in CODE_TABLES:
             return {"error": f"Invalid code_type. Must be one of: {list(CODE_TABLES.keys())}"}
@@ -61,9 +56,7 @@ def lookup_medical_code(search_term: str, code_type: str) -> dict:
         mcp_server = get_mcp_server()
         mcp_server.merge_task_resources(results)
 
-        logger.debug(f"Code lookup result: {results}")
         return results
 
     except Exception as e:
-        logger.warning(f"Code lookup failed: {e}")
         return {"error": "Code lookup failed"}

@@ -15,7 +15,6 @@ import logging
 import time
 import warnings
 
-import pandas as pd
 from pydantic import ValidationError
 from uuid import uuid4
 
@@ -148,7 +147,7 @@ class Agent:
         await updater.add_artifact(
             parts=[
                 Part(root=TextPart(text=eval_result.summary())),
-                Part(root=DataPart(data=eval_result.model_dump(exclude_none=True))),
+                Part(root=DataPart(data=eval_result.model_dump())),
             ],
             name="Result",
         )

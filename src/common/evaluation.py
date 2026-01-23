@@ -46,8 +46,7 @@ async def evaluate_results(
         else 0.0
     )
 
-    logger.info(f"Evaluation complete: {correct}/{total} correct ({correct / total * 100:.1f}%)")
-    logger.debug(f"Precision: {avg_precision:.4f}, Recall: {avg_recall:.4f}, F1: {f1:.4f}")
+    logger.info(f"Evaluation complete")
 
     # Build output
     task_outputs = [
@@ -104,9 +103,6 @@ def _calculate_retrieval_metrics(tasks: list[Task]) -> None:
     precision_values = [t.result.precision for t in tasks if t.result and t.result.precision is not None]
     recall_values = [t.result.recall for t in tasks if t.result and t.result.recall is not None]
 
-    logger.debug(f"Retrieval Precision: {sum(precision_values) / len(precision_values) if precision_values else 0:.4f}")
-    logger.debug(f"Retrieval Recall: {sum(recall_values) / len(recall_values) if recall_values else 0:.4f}")
-
 
 async def _calculate_answer_metrics(
         tasks: list[Task],
@@ -127,9 +123,10 @@ async def _calculate_answer_metrics(
                 return
 
             if task.task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
-                action_correct = _evaluate_action_task(task.expected_actions, result)
+                action_correct, reason = _evaluate_action_task(task.expected_actions, result)
                 if not action_correct:
                     correctness = 0
+                    logger.debug(f"[{task.question_id}] Action mismatch: {reason}")
                 elif task.task_type == "medagentbench_action":
                     correctness = 0 if result.error else 1
                 elif result.error or not result.final_answer:
@@ -160,11 +157,8 @@ async def _calculate_answer_metrics(
 
     await asyncio.gather(*[check_single_answer(task) for task in tasks])
 
-    correct_count = sum(1 for t in tasks if t.result and t.result.correct == 1)
-    logger.debug(f"Answer accuracy: {correct_count / len(tasks):.4f}")
 
-
-def _evaluate_action_task(expected_actions: list, result) -> int:
+def _evaluate_action_task(expected_actions: list, result) -> tuple[int, str]:
     """Check if POST requests match expected actions (1=match, 0=mismatch)."""
     post_requests = [
         t["args"] for t in result.tools_used
@@ -172,11 +166,12 @@ def _evaluate_action_task(expected_actions: list, result) -> int:
     ]
 
     if not expected_actions:
-        return 1 if not post_requests else 0
+        if not post_requests:
+            return 1, "ok"
+        return 0, f"Expected no POSTs but got {len(post_requests)}"
 
     if len(post_requests) != len(expected_actions):
-        logger.debug(f"POST count mismatch: got {len(post_requests)}, expected {len(expected_actions)}")
-        return 0
+        return 0, f"POST count mismatch: got {len(post_requests)}, expected {len(expected_actions)}"
 
     for expected in expected_actions:
         found = any(
@@ -185,10 +180,9 @@ def _evaluate_action_task(expected_actions: list, result) -> int:
             for actual in post_requests
         )
         if not found:
-            logger.debug(f"No matching POST for expected: {expected}")
-            return 0
+            return 0, f"No matching POST for expected: {expected}"
 
-    return 1
+    return 1, "ok"
 
 
 def _dict_match(actual: dict, expected: dict) -> bool:
@@ -196,7 +190,6 @@ def _dict_match(actual: dict, expected: dict) -> bool:
     for key, expected_val in expected.items():
         actual_key = "note" if key == "note_contains" else key
         if not _values_match(actual.get(actual_key), expected_val, field_name=key):
-            logger.debug(f"Mismatch for {key}: got {actual.get(actual_key)}, expected {expected_val}")
             return False
     return True
 

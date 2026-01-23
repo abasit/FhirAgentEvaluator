@@ -5,12 +5,9 @@ Fetches drug interaction/warning text from the FDA OpenFDA API for a list of dru
 The agent should use this data to reason about potential drug-drug interactions.
 """
 
-import logging
 import time
 
 import requests
-
-logger = logging.getLogger(__name__)
 
 FDA_LABEL_URL = "https://api.fda.gov/drug/label.json"
 INFO_FIELDS = ["drug_interactions", "boxed_warning", "warnings", "contraindications", "precautions",
@@ -31,8 +28,6 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     if not drug_list:
         return {"error": "No drug names provided"}
 
-    logger.debug(f"Fetching FDA labels for {len(drug_list)} drugs: {drug_list}")
-
     # Fetch FDA label for each drug
     labels = {}
     for drug in drug_list:
@@ -40,7 +35,6 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
             labels[drug] = _fetch_fda_label(drug)
         except Exception as e:
             labels[drug] = f"Error: {e}"
-            logger.warning(f"Failed to fetch FDA label for {drug}: {e}")
 
     return labels
 

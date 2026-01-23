@@ -71,7 +71,10 @@ class MCPServer:
             "args": args,
             "result": result,
         })
-        logger.debug(f"[{task_id}] {tool_name}({args}) ->\n{str(result)}")
+        if result.get("error"):
+            logger.warning(f"[{task_id}] Tool call failure: {tool_name}, arguments: {args}, result: {result}")
+        else:
+            logger.debug(f"[{task_id}] Tool call: {tool_name}, arguments: {args}, result: {result}")
 
     def merge_task_resources(self, resources: dict[str, list]) -> None:
         """Merge resources into task-scoped storage for the current task."""

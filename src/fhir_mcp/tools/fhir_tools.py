@@ -6,11 +6,7 @@ Results from fhir_request_get are stored in task-scoped storage and can be
 accessed via execute_python_code using the `retrieved_resources` variable.
 """
 
-import logging
-
 from common.fhir_client import get_fhir_client
-
-logger = logging.getLogger(__name__)
 
 
 FHIR_SCHEMA = """
@@ -143,7 +139,6 @@ def fhir_request_get(query_string: str) -> dict:
 
     Note: Use lookup_medical_code to find codes before querying.
     """
-    logger.debug(f"FHIR GET: {query_string}")
 
     try:
         client = get_fhir_client()
@@ -161,15 +156,12 @@ def fhir_request_get(query_string: str) -> dict:
         total_resources = sum(len(v) for v in resources_by_type.values())
         resource_counts = {rt: len(items) for rt, items in resources_by_type.items()}
 
-        logger.debug(f"FHIR response: {total_resources} resources")
-
         return {
             "message": f"Retrieved {total_resources} resources across {len(resource_counts)} types",
             "resource_counts": resource_counts
         }
 
     except Exception as e:
-        logger.warning(f"FHIR request failed: {e}")
         return {"error": str(e)}
 
 
@@ -220,7 +212,5 @@ def fhir_request_post(resource_type: str, params: dict) -> dict:
 
     if not params.get("patient_id"):
         return {"error": "patient_id is required in params"}
-
-    logger.debug(f"FHIR POST {resource_type}: {params}")
 
     return {"message": f"{resource_type} recorded"}

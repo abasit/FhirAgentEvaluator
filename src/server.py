@@ -8,6 +8,7 @@ Exposes an agent card and MCP tools for participant agents.
 import argparse
 import logging
 import uvicorn
+from mcp.server.auth import settings
 from starlette.applications import Starlette
 from starlette.routing import Mount
 
@@ -19,12 +20,14 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from executor import Executor
 from fhir_mcp import init_mcp_server
 
+logging_level = logging.INFO
 
 logging.basicConfig(level=logging.WARNING)
-logging.getLogger("fhir_green_agent").setLevel(logging.INFO)
-logging.getLogger("fhir_mcp").setLevel(logging.INFO)
-logging.getLogger("fhir_common").setLevel(logging.INFO)
+logging.getLogger("fhir_green_agent").setLevel(logging_level)
+logging.getLogger("fhir_mcp").setLevel(logging_level)
+logging.getLogger("fhir_common").setLevel(logging_level)
 
+logger = logging.getLogger("fhir_green_agent")
 
 def main():
     parser = argparse.ArgumentParser(description="Run the FHIR Agent Evaluator server.")
@@ -88,7 +91,8 @@ def main():
         lifespan=mcp_server.lifespan,
     )
 
-    uvicorn.run(root_app, host=args.host, port=args.port)
+    logger.info(f"Starting FHIR Agent Evaluator server on {base_url}")
+    uvicorn.run(root_app, host=args.host, port=args.port, log_level="warning")
 
 
 if __name__ == '__main__':
