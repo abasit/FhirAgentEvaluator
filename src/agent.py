@@ -39,7 +39,7 @@ DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
 DEFAULT_MAX_ITERATIONS = 10
 DEFAULT_MAX_CONCURRENT = 3
 DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
-DEFAULT_TASK_TIMEOUT = 60  # seconds
+DEFAULT_TASK_TIMEOUT = 120  # seconds
 
 
 class Agent:
@@ -278,7 +278,7 @@ class Agent:
         # Send message and receive response
         try:
             state.iterations += 1
-            logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
+            # logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
 
             response_text = await self.messenger.talk_to_agent(
                 message=message_content,
@@ -346,7 +346,7 @@ class Agent:
 
                 # Send message and receive response
                 try:
-                    logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
+                    # logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
 
                     response_text = await self.messenger.talk_to_agent(
                         message=message_content,

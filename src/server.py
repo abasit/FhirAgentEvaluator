@@ -22,7 +22,7 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from executor import Executor
 from fhir_mcp import init_mcp_server
 
-logging_level = logging.INFO
+logging_level = logging.DEBUG
 os.environ["DEBUG_TRACES"] = "True"
 
 logging.basicConfig(level=logging.WARNING)

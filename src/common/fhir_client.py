@@ -38,7 +38,6 @@ class FHIRClient:
             response = self.session.get(resource_path)
 
             if response.status_code >= 400:
-                # Parse OperationOutcome for helpful error message
                 try:
                     outcome = response.json()
                     diagnostics = outcome.get("issue", [{}])[0].get("diagnostics", response.text)
@@ -46,16 +45,21 @@ class FHIRClient:
                 except (ValueError, KeyError):
                     raise Exception(f"{response.status_code}: {response.text}")
 
-            resources = response.json()
+            data = response.json()
 
-            if resources.get("entry", []):
+            # Direct resource read (not a Bundle)
+            if data.get("resourceType") != "Bundle":
+                return [self._remove_fields(data, ["text", "meta"])]
+
+            # Bundle response
+            if data.get("entry"):
                 all_resources.extend([
                     self._remove_fields(e["resource"], ["text", "meta"])
-                    for e in resources["entry"]
+                    for e in data["entry"]
                 ])
 
             next_url = None
-            for link in resources.get("link", []):
+            for link in data.get("link", []):
                 if link.get("relation") == "next":
                     next_url = link.get("url")
                     break

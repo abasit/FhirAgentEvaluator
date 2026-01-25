@@ -7,9 +7,9 @@ retrieved via fhir_request_get. Resources are available in the
 """
 
 import json
-import signal
 import traceback
 
+_NOT_SET = object()
 
 def _normalize_retrieved_resources(resources: dict) -> dict:
     """Normalize retrieved resources to consistent list format."""
@@ -56,51 +56,48 @@ def execute_python_code(code: str) -> dict:
     Available:
         - retrieved_resources: dict of resource_type -> list of FHIR resources
         - json, re, datetime, math, statistics modules
+        - Built-in functions: len, min, max, sum, sorted, list, dict, str, int, float, bool, range, enumerate, zip, any, all, abs, round
     """
 
-    def timeout_handler(signum, frame):
-        raise TimeoutError(f"Code execution timed out after {EXEC_TIMEOUT}s")
+    try:
+        from fhir_mcp import get_mcp_server
+        mcp_server = get_mcp_server()
+        resources = mcp_server.get_task_resources()
+    except Exception as e:
+        return {"error": f"Failed to get resources: {e}"}
+
+    if isinstance(resources, dict):
+        resources = _normalize_retrieved_resources(resources)
+
+    safe_builtins = {
+        'len': len, 'min': min, 'max': max, 'sum': sum, 'sorted': sorted,
+        'list': list, 'dict': dict, 'set': set, 'tuple': tuple,
+        'str': str, 'int': int, 'float': float, 'bool': bool,
+        'range': range, 'enumerate': enumerate, 'zip': zip,
+        'any': any, 'all': all, 'abs': abs, 'round': round,
+        'True': True, 'False': False, 'None': None,
+    }
+
+    exec_globals = {
+        '__builtins__': safe_builtins,
+        'json': json,
+        're': __import__('re'),
+        'datetime': __import__('datetime'),
+        'math': __import__('math'),
+        'statistics': __import__('statistics'),
+        'retrieved_resources': resources,
+        'answer': _NOT_SET,
+    }
 
     try:
-        # Set timeout
-        original_handler = signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(EXEC_TIMEOUT)
-
-        try:
-            exec_globals = {
-                'json': json,
-                're': __import__('re'),
-                'datetime': __import__('datetime'),
-                'math': __import__('math'),
-                'statistics': __import__('statistics'),
-                'answer': None,
-            }
-
-            from fhir_mcp import get_mcp_server
-            mcp_server = get_mcp_server()
-            resources = mcp_server.get_task_resources()
-
-            if isinstance(resources, dict):
-                resources = _normalize_retrieved_resources(resources)
-
-            exec_globals['retrieved_resources'] = resources
-
-            exec(code, exec_globals)
-
-            answer = exec_globals.get('answer', None)
-
-            if answer is not None:
-                return {"answer": answer}
-            else:
-                return {"error": "Code executed successfully (no answer variable set)"}
-
-        finally:
-            # Always cancel alarm and restore handler
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, original_handler)
-
-    except TimeoutError:
-        return {"error": f"Code execution timed out after {EXEC_TIMEOUT}s"}
+        exec(code, exec_globals)
     except Exception as e:
         error_info = traceback.format_exc()
-        return {"error": f"Error executing code: {e}\n\nFull traceback:\n{error_info}"}
+        return {"error": f"Execution failed: {e}\n\nTraceback:\n{error_info}"}
+
+    answer = exec_globals.get('answer', _NOT_SET)
+
+    if answer is _NOT_SET:
+        return {"error": "No answer variable set"}
+
+    return {"answer": answer}
