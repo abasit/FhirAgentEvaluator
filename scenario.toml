@@ -6,8 +6,8 @@ role = "purple_agent"
 endpoint = "http://127.0.0.1:9001"
 
 [config]
-num_tasks = 1000
+num_tasks = 100
 tasks_file = "data/all_tasks.csv"
-mcp_enabled = false
+mcp_enabled = true
 max_iterations = 10
 max_concurrent = 3

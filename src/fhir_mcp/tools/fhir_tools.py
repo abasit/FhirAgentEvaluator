@@ -126,7 +126,7 @@ def fhir_request_get(query_string: str) -> dict:
             Format: "<ResourceType>?patient=<fhir_id>&<param>=<value>&..."
             Examples:
                 - "Patient/<fhir_id>"
-                - "MedicationRequest?patient=<fhir_id>&status=active"
+                - "MedicationRequest?patient=<fhir_id>&status=completed"
                 - "Observation?patient=<fhir_id>&code=220210&date=ge2133-12-31"
 
     Returns:
