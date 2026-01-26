@@ -12,6 +12,7 @@ from dateutil import parser as date_parser
 
 from common.eval_metrics import retrieval_recall, retrieval_precision, check_answer_correctness
 from common.models import FHIRAgentBenchResult, Task, TaskOutput
+from common.utils import format_time
 
 logger = logging.getLogger("fhir_green_agent.evaluation")
 
@@ -74,7 +75,7 @@ async def evaluate_results(
         avg_precision=_round(avg_precision),
         avg_recall=_round(avg_recall),
         f1_score=_round(f1),
-        time_used=round(time_used, 2),
+        time_used=format_time(time_used),
         task_results=task_outputs,
     )
 

@@ -68,7 +68,7 @@ class FHIRAgentBenchResult(BaseModel):
     avg_precision: float
     avg_recall: float
     f1_score: float
-    time_used: float
+    time_used: str
     task_results: list[TaskOutput]
 
     def summary(self) -> str:
