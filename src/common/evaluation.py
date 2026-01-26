@@ -16,6 +16,10 @@ from common.models import FHIRAgentBenchResult, Task, TaskOutput
 logger = logging.getLogger("fhir_green_agent.evaluation")
 
 
+def _round(value: float | None, decimals: int = 4) -> float | None:
+    return round(value, decimals) if value is not None else None
+
+
 async def evaluate_results(
         tasks: list[Task],
         time_used: float,
@@ -56,8 +60,8 @@ async def evaluate_results(
             true_answer=task.true_answer,
             final_answer=task.result.final_answer if task.result else None,
             correct=task.result.correct if task.result else None,
-            precision=task.result.precision if task.result else None,
-            recall=task.result.recall if task.result else None,
+            precision=_round(task.result.precision) if task.result else None,
+            recall=_round(task.result.recall) if task.result else None,
             error=task.result.error if task.result else None,
         )
         for task in tasks
@@ -66,11 +70,11 @@ async def evaluate_results(
     return FHIRAgentBenchResult(
         total_tasks=total,
         correct_answers=correct,
-        accuracy=correct / total if total > 0 else 0,
-        avg_precision=avg_precision,
-        avg_recall=avg_recall,
-        f1_score=f1,
-        time_used=time_used,
+        accuracy=_round(correct / total if total > 0 else 0),
+        avg_precision=_round(avg_precision),
+        avg_recall=_round(avg_recall),
+        f1_score=_round(f1),
+        time_used=round(time_used, 2),
         task_results=task_outputs,
     )
 
