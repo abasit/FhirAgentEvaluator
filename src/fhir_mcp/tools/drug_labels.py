@@ -9,6 +9,7 @@ import time
 
 import requests
 
+MAX_DRUGS = 5
 FDA_LABEL_URL = "https://api.fda.gov/drug/label.json"
 INFO_FIELDS = ["drug_interactions", "boxed_warning", "warnings", "contraindications", "precautions",
                "general_precautions"]
@@ -19,7 +20,8 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     Fetch FDA label interaction/warning text for a list of drugs.
 
     Args:
-        drug_list: List of drug names to check (e.g., ["nifedipine", "heparin", "lisinopril"])
+        drug_list: List of drug names to check, maximum 5.
+            Example: ["nifedipine", "heparin", "lisinopril"]
 
     Returns:
         dict mapping each drug name to its FDA label text (interactions, warnings,
@@ -28,7 +30,10 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     if not drug_list:
         return {"error": "No drug names provided"}
 
-    # Fetch FDA label for each drug
+    if len(drug_list) > MAX_DRUGS:
+        return {
+            "error": f"Too many drugs requested ({len(drug_list)}). Maximum is {MAX_DRUGS}. Query the most relevant drugs only."}
+
     labels = {}
     for drug in drug_list:
         try:

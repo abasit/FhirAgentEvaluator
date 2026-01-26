@@ -75,7 +75,7 @@ async def evaluate_results(
         avg_precision=_round(avg_precision),
         avg_recall=_round(avg_recall),
         f1_score=_round(f1),
-        time_used=format_time(time_used),
+        time_used=int(time_used),
         task_results=task_outputs,
     )
 

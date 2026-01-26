@@ -103,11 +103,10 @@ def make_result(
     return result
 
 
-def format_time(seconds: float) -> str:
+def format_time(seconds: int) -> str:
     """
     Format time in seconds into a human-readable string.
     """
-    seconds = int(seconds)
     if seconds < 60:
         return f"{seconds}s"
 

@@ -89,7 +89,7 @@ Observation: {
   "category": [{"coding": [{"code": "laboratory | vital-signs | Output"}]}],
   // category: "laboratory" = labs/micro, "vital-signs" = vitals, "Output" = output events (case-sensitive)
   "code": {"coding": [{"system": "<system>", "code": "<code>", "display": "<name>"}]},
-  "effectiveDateTime": "<datetime>",
+  "effectiveDateTime": "<datetime>", 
   "valueQuantity": {"value": <n>, "unit": "<unit>"},
   // OR "valueString": "<text>"  // For microbiology test results
   "specimen": {"reference": "Specimen/<id>"}  // Present for lab and microbiology tests
@@ -127,7 +127,7 @@ def fhir_request_get(query_string: str) -> dict:
             Examples:
                 - "Patient/<fhir_id>"
                 - "MedicationRequest?patient=<fhir_id>&status=completed"
-                - "Observation?patient=<fhir_id>&code=220210&date=ge2133-12-31"
+                - "Observation?patient=<fhir_id>&code=<code_from_lookup>&date=ge2133-12-31"
 
     Returns:
         dict: Summary of retrieved resources.

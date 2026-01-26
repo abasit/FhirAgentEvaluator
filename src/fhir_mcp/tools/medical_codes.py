@@ -22,12 +22,14 @@ CODE_TABLES = {
 
 def lookup_medical_code(search_term: str, code_type: str) -> dict:
     """
-    Search local code tables by term.
+    Search local code tables to find codes used in this database.
+
+    IMPORTANT: This database does NOT use standard LOINC or SNOMED codes.
 
     Args:
         search_term: Free text search term (e.g., "magnesium", "heart rate")
         code_type: Table to search:
-            - "labitems": Laboratory tests (e.g., potassium, glucose, hemoglobin)
+            - "labitems": Laboratory tests
             - "items": Chart events (vitals, measurements, inputs)
             - "diagnoses": ICD diagnosis codes
             - "procedures": ICD procedure codes
