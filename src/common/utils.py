@@ -73,13 +73,6 @@ def parse_agent_response(response_text: str) -> list:
     return parsed if isinstance(parsed, list) else [parsed]
 
 
-def is_final_answer(content: str) -> bool:
-    """Check if response contains a final answer marker."""
-    if not content:
-        return False
-    return "the final answer is:" in content.lower().strip()
-
-
 def make_result(
         state: ConversationState,
         mcp_task_id: str,

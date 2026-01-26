@@ -23,7 +23,7 @@ def retrieval_recall(pred: list, true: list) -> float:
     if len(true) == 0 and len(pred) == 0:
         return 1.0
     if len(true) == 0 and len(pred) > 0:
-        return np.nan
+        return None
     if len(true) > 0 and len(pred) == 0:
         return 0.0
 
@@ -43,7 +43,7 @@ def retrieval_precision(pred: list, true: list) -> float:
     if len(true) == 0 and len(pred) > 0:
         return 0.0
     if len(true) > 0 and len(pred) == 0:
-        return np.nan
+        return None
 
     return np.mean([p in true_set for p in pred])
 
@@ -62,7 +62,7 @@ The model answer may be more verbose or formatted differently from the true answ
 ### Core Rules:
 
 1. Null or no-answer cases  
-   - If the true answer is `[]`, `'null'`, `[[]]`, or explicitly states "no answer", this means no data exists.
+   - If the true answer is `[]`, `'null'`, `[[]]`, `[[None]]`, or explicitly states "no answer", this means no data exists.
    - Model answers that correctly indicate no data: "none found", "no results", "no [X] recorded", empty list `[]`, or `0` for count questions.
    - If both true answer and model answer indicate no data exists, return 1.
    - If true answer indicates no data but model provides a non-empty answer, return 0.

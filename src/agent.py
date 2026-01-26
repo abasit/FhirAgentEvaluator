@@ -26,7 +26,7 @@ from messenger import Messenger
 from common.models import EvalRequest, TaskResult, ConversationState, Task
 from common.evaluation import evaluate_results
 from common.prompt_builder import build_task_prompt_messaging, RESPOND_ACTION_NAME, build_task_prompt_mcp
-from common.utils import load_tasks, make_result, is_final_answer, parse_agent_response, format_time
+from common.utils import load_tasks, make_result, parse_agent_response, format_time
 from fhir_mcp import verify_tool_access, execute_tool
 from fhir_mcp.server import current_task_id
 
@@ -307,13 +307,7 @@ class Agent:
 
         if action_name == RESPOND_ACTION_NAME:
             content = action_kwargs.get("content", "")
-
-            if is_final_answer(content):
-                logger.debug(f"[Task {q_id}] Got final answer after {state.iterations} iterations")
-                return make_result(state, mcp_task_id, final_answer=content)
-            else:
-                logger.warning(f"[Task {q_id}] Response without final answer")
-                return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
+            return make_result(state, mcp_task_id, final_answer=content)
 
         logger.warning(f"[Task {q_id}] Unexpected action \"{action_name}\" for MCP mode")
         return make_result(state, mcp_task_id, error=f"[Task {q_id}] Unexpected action \"{action_name}\" for MCP mode")
@@ -376,13 +370,7 @@ class Agent:
 
                 if action_name == RESPOND_ACTION_NAME:
                     content = action_kwargs.get("content", "")
-
-                    if is_final_answer(content):
-                        logger.debug(f"[Task {q_id}] Got final answer after {state.iterations} iterations")
-                        return make_result(state, mcp_task_id, final_answer=content)
-                    else:
-                        logger.warning(f"[Task {q_id}] Response without final answer")
-                        return make_result(state, mcp_task_id, error=f"Response without final answer\n{content}")
+                    return make_result(state, mcp_task_id, final_answer=content)
                 else:
                     tool_name, tool_args = action_name, action_kwargs
                     logger.debug(f"[Task {q_id}] Calling tool: {tool_name} with args: {tool_args}")
