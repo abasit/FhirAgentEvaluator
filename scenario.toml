@@ -1,13 +1,12 @@
 [green_agent]
-endpoint = "http://127.0.0.1:9000"
+endpoint = "http://localhost:9009"
 
 [[participants]]
 role = "purple_agent"
-endpoint = "http://127.0.0.1:9001"
+endpoint = "http://localhost:9010"
 
 [config]
-num_tasks = 100
-tasks_file = "data/all_tasks.csv"
+num_tasks = 0  # 0 for all tasks
+tasks_file = "data/eval_tasks.csv"
 mcp_enabled = true
 max_iterations = 10
-max_concurrent = 3

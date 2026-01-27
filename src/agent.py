@@ -22,6 +22,8 @@ from a2a.server.tasks import TaskUpdater
 from a2a.types import Message, TaskState, Part, TextPart, DataPart
 from a2a.utils import get_message_text, new_agent_text_message
 
+from config import (DEFAULT_TASKS_FILE, DEFAULT_NUM_TASKS, DEFAULT_MCP_ENABLED, DEFAULT_MAX_ITERATIONS,
+    DEFAULT_MAX_CONCURRENT, DEFAULT_TASK_TIMEOUT, DEFAULT_EVAL_MODEL, LOGGING_LEVEL)
 from messenger import Messenger
 from common.models import EvalRequest, TaskResult, ConversationState, Task
 from common.evaluation import evaluate_results
@@ -32,15 +34,6 @@ from fhir_mcp.server import current_task_id
 
 warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 logger = logging.getLogger("fhir_green_agent")
-
-DEFAULT_TASKS_FILE = "data/all_tasks.csv"
-DEFAULT_NUM_TASKS = 0  # 0 means all tasks
-DEFAULT_MCP_ENABLED = True  # Means we communicate only via MCP
-DEFAULT_MAX_ITERATIONS = 10
-DEFAULT_MAX_CONCURRENT = 3
-DEFAULT_EVAL_MODEL = "openai/gpt-4o-mini"
-DEFAULT_TASK_TIMEOUT = 120  # seconds
-
 
 class Agent:
     """
@@ -93,7 +86,7 @@ class Agent:
         tasks_file = request.config.get("tasks_file", DEFAULT_TASKS_FILE)
         mcp_enabled = request.config.get("mcp_enabled", DEFAULT_MCP_ENABLED)
         max_iterations = request.config.get("max_iterations", DEFAULT_MAX_ITERATIONS)
-        max_concurrent = request.config.get("max_concurrent", DEFAULT_MAX_CONCURRENT)
+        max_concurrent = DEFAULT_MAX_CONCURRENT
         eval_model = DEFAULT_EVAL_MODEL
 
         # Verify tool access
@@ -152,7 +145,7 @@ class Agent:
             name="Result",
         )
 
-        if os.environ.get("DEBUG_TRACES"):
+        if LOGGING_LEVEL == logging.DEBUG:
             debug_output = [
                 {
                     "question_id": task.question_id,
@@ -278,7 +271,7 @@ class Agent:
         # Send message and receive response
         try:
             state.iterations += 1
-            # logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
+            logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
 
             response_text = await self.messenger.talk_to_agent(
                 message=message_content,
@@ -340,7 +333,7 @@ class Agent:
 
                 # Send message and receive response
                 try:
-                    # logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
+                    logger.debug(f"[Task {q_id}] Sending:\n{message_content}")
 
                     response_text = await self.messenger.talk_to_agent(
                         message=message_content,

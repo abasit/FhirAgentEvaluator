@@ -16,18 +16,45 @@ The benchmark combines and augments tasks from two established medical agent ben
 - **MedAgentBench** - Action-oriented clinical tasks
 - **Drug Interactions** - Medication conflict detection using FDA label information
 
+## How It Works
+
+1. **Task Dispatch**: The green agent sends clinical questions to the purple agent via A2A protocol
+2. **Tool Access**: Purple agents can use the following tools to complete tasks: 
+   - `fhir_request_get` - Query FHIR resources (Patient, Observation, Condition, etc.)
+   - `fhir_request_post` - Create clinical orders (MedicationRequest, ServiceRequest, etc.)
+   - `execute_python_code` - Run Python to process retrieved data
+   - `lookup_medical_code` - Find codes for labs, medications, procedures
+   - `get_fda_drug_labels` - Retrieve drug interaction information
+3. **Evaluation**: The green agent compares the purple agent's answer against ground truth using retrieval metrics and LLM-based answer evaluation
+
+### Communication Modes
+
+| Mode | Description |
+|------|-------------|
+| **MCP** (default) | Purple agent connects to an MCP server and calls tools directly |
+| **Messaging** | Multi-turn conversation where the purple agent requests tool calls and the green agent executes them |
+
+Both modes provide access to the same tools. Results should be comparable, though not guaranteed identical due to differences in tool description and result formatting.
+
+### Example Task
+
+> What was patient 10015860's most recent hemoglobin value during their last hospital encounter?
+
 ### Evaluation Metrics
 
 - **Answer Correctness** - LLM-based semantic comparison with reference answers
 - **Action Correctness** - Validation of FHIR POST requests (resource type, parameters)
 - **Retrieval Precision/Recall** - Comparison of retrieved FHIR resource IDs against ground truth
 
+
+
 ## Repository Structure
 ```
 ├── src/
+│   ├── config.py                    # Settings for logging and other defaults
 │   ├── server.py                    # HTTP server + agent card configuration
-│   ├── executor.py                  # A2A request lifecycle and execution
 │   ├── agent.py                     # Agent orchestration and decision logic
+│   ├── executor.py                  # A2A request lifecycle and execution
 │   ├── messenger.py                 # A2A messaging abstractions
 │   │
 │   ├── common/                      # Shared evaluation and benchmarking logic
@@ -48,6 +75,11 @@ The benchmark combines and augments tasks from two established medical agent ben
 │           ├── drug_labels.py       # FDA drug label retrieval
 │           └── python_executor.py   # Sandboxed Python execution
 │
+├── launcher/
+│   ├── client.py                    # A2A client utilities
+│   └── client_cli.py                # CLI for running evaluations locally
+│
+├── scenario.toml                    # Example evaluation configuration
 ├── Dockerfile                       # Docker configuration
 ├── pyproject.toml                   # Python dependencies
 └── .github/
@@ -60,7 +92,7 @@ The benchmark combines and augments tasks from two established medical agent ben
 ### Prerequisites
 
 - Docker and Docker Compose
-- Python 3.11+ with [uv](https://github.com/astral-sh/uv)
+- Python 3.11+ with [uv](https://github.com/astral-sh/uv) (for local development)
 - OpenAI API key (for answer evaluation)
 
 ### Quick Start
@@ -78,9 +110,9 @@ cp sample.env .env
 # Edit .env with your OpenAI API key
 ```
 
-3. Start the FHIR database and green agent:
+3. Start the green agent and the FHIR server:
 ```bash
-docker compose up
+docker compose up green-agent
 ```
 
 This starts:
@@ -93,7 +125,7 @@ This starts:
 4. Verify services are running:
 ```bash
 # Check green agent
-curl "http://localhost:9009/.well-known/agent.json"
+curl "http://localhost:9009/.well-known/agent-card.json"
 
 # Check FHIR server
 curl "http://localhost:8080/fhir/Patient?_summary=count"
@@ -103,51 +135,62 @@ curl "http://localhost:8080/fhir/Patient?_summary=count"
 
 ### Via AgentBeats Platform
 
-Instructions are available at the [AgentBeats platform](https://agentbeats.dev).
+For official submissions and leaderboard results, see the [AgentBeats platform](https://agentbeats.dev). The green agent is available [here](https://agentbeats.dev/abasit/fhiragentevaluator).
 
-The green agent is available at https://agentbeats.dev.
+### Local Development
 
-<!-- TODO: Update URL after registration -->
+For testing and development:
 
-### Locally via A2A Request
-
-Send an evaluation request directly to the green agent:
+1. Start the green agent and FHIR server:
 ```bash
-curl -X POST http://localhost:9009/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "participants": {
-      "purple_agent": "<purple_agent_url>"
-    },
-    "config": {
-      "num_tasks": 0,
-      "tasks_file": "data/all_tasks.csv",
-      "mcp_enabled": true,
-      "max_iterations": 10,
-      "max_concurrent": 3
-    }
-  }'
+docker compose up green-agent
 ```
+
+2. Start your purple agent separately (e.g., on `http://localhost:9009`)
+
+3. Configure `scenario.toml`:
+```toml
+[green_agent]
+endpoint = "http://localhost:9009"
+
+[[participants]]
+role = "purple_agent"
+endpoint = "http://localhost:9010"
+
+[config]
+num_tasks = 0  # 0 for all tasks
+tasks_file = "data/eval_tasks.csv"
+mcp_enabled = true
+max_iterations = 10
+```
+
+4. Run the evaluation:
+```bash
+python -m launcher.client_cli scenario.toml output.json
+```
+
+Results are written to `output.json`.
 
 ### Configuration Options
 
-| Option | Default              | Description |
-|--------|----------------------|-------------|
-| `num_tasks` | 0 (all)              | Number of tasks to run |
-| `tasks_file` | `data/all_tasks.csv` | Path to task CSV |
-| `mcp_enabled` | true                 | MCP mode (true) or messaging mode (false) |
-| `max_iterations` | 10                   | Max agent turns per task |
-| `max_concurrent` | 3                    | Parallel task execution |
+All configurations are optional.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `num_tasks` | 0 (all) | Number of tasks to run |
+| `tasks_file` | `data/eval_tasks.csv` | Path to task CSV |
+| `mcp_enabled` | true | MCP mode (true) or messaging mode (false) |
+| `max_iterations` | 10 | Max agent turns per task |
 
 ## Citation
 
 If you use this benchmark, please cite:
 ```bibtex
-@software{basit2025fhiragentevaluator,
+@software{basit2026fhiragentevaluator,
   title={FHIR Agent Evaluator: An A2A Evaluation Framework for Medical LLM Agents},
   author={Basit, Abdul and Batrakova, Maria},
   url={https://github.com/abasit/fhiragentevaluator},
-  year={2025}
+  year={2026}
 }
 ```
 This benchmark builds upon:

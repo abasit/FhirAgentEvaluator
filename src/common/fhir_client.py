@@ -9,7 +9,9 @@ from typing import Any
 
 import requests
 
-FHIR_SERVER_URL = os.environ.get("FHIR_SERVER_URL", "http://fhir-server:8080/fhir")
+from src.config import DEFAULT_FHIR_SERVER
+
+FHIR_SERVER_URL = os.environ.get("FHIR_SERVER_URL", DEFAULT_FHIR_SERVER)
 
 JsonObject = list[dict[str, Any]]
 

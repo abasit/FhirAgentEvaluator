@@ -18,20 +18,18 @@ from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 
+from config import LOGGING_LEVEL
 from executor import Executor
 from fhir_mcp import init_mcp_server
-
-logging_level = logging.DEBUG
-os.environ["DEBUG_TRACES"] = "True"
 
 logging.basicConfig(
     level=logging.WARNING,
     format='%(asctime)s %(levelname)s:%(name)s:%(message)s',
     datefmt='%H:%M:%S'
 )
-logging.getLogger("fhir_green_agent").setLevel(logging_level)
-logging.getLogger("fhir_mcp").setLevel(logging_level)
-logging.getLogger("fhir_common").setLevel(logging_level)
+logging.getLogger("fhir_green_agent").setLevel(LOGGING_LEVEL)
+logging.getLogger("fhir_mcp").setLevel(LOGGING_LEVEL)
+logging.getLogger("fhir_common").setLevel(LOGGING_LEVEL)
 
 logger = logging.getLogger("fhir_green_agent")
 
