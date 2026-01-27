@@ -32,7 +32,7 @@ class MCPServer:
     after a purple agent completes a task.
     """
 
-    def __init__(self, base_url: str = "", max_concurrent_requests: int = 2):
+    def __init__(self, base_url: str = ""):
         """
         Initialize the MCP server.
 
@@ -40,7 +40,6 @@ class MCPServer:
             base_url: Base URL for constructing MCP endpoint URLs
         """
         self.base_url = base_url
-        self._semaphore = asyncio.Semaphore(max_concurrent_requests)
         self.app = FastMCP(name="fhiragentbench-mcp", stateless_http=True, json_response=True, host="0.0.0.0")
         self.tool_logs: dict[str, list[dict[str, Any]]] = {}
         self.task_resources: dict[str, dict[str, list]] = {}
@@ -107,7 +106,7 @@ class MCPServer:
     def get_routes(self) -> Mount:
         """Create Starlette routes for the MCP server at /tasks/{task_id}/mcp."""
         mcp_asgi = self.app.streamable_http_app()
-        scoped = TaskScopedMCP(mcp_asgi, self._semaphore)
+        scoped = TaskScopedMCP(mcp_asgi)
         return Mount("/tasks/{task_id}", app=scoped)
 
     @contextlib.asynccontextmanager
@@ -130,17 +129,15 @@ class MCPServer:
 class TaskScopedMCP:
     """ASGI middleware that injects task_id into the async context."""
 
-    def __init__(self, mcp_asgi, semaphore: asyncio.Semaphore):
+    def __init__(self, mcp_asgi):
         self.mcp_asgi = mcp_asgi
-        self._semaphore = semaphore
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
             task_id = scope.get("path_params", {}).get("task_id")
             token = current_task_id.set(task_id)
             try:
-                async with self._semaphore:
-                    await self.mcp_asgi(scope, receive, send)
+                await self.mcp_asgi(scope, receive, send)
             finally:
                 current_task_id.reset(token)
         else:
