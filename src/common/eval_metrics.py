@@ -250,6 +250,7 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
+        seed=0,
     )
 
     result = response.choices[0].message.content.strip()

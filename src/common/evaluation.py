@@ -105,9 +105,6 @@ def _calculate_retrieval_metrics(tasks: list[Task]) -> None:
         result.recall = retrieval_recall(agent_ids, true_ids)
         result.precision = retrieval_precision(agent_ids, true_ids)
 
-    precision_values = [t.result.precision for t in tasks if t.result and t.result.precision is not None]
-    recall_values = [t.result.recall for t in tasks if t.result and t.result.recall is not None]
-
 
 async def _calculate_answer_metrics(
         tasks: list[Task],
