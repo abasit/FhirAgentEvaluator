@@ -3,6 +3,8 @@
 .python-version
 .idea
 output.json
+debug_traces.json
+
 
 # Python-generated files
 __pycache__/

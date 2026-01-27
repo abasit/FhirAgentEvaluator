@@ -173,7 +173,7 @@ Results are written to `output.json`.
 
 ### Configuration Options
 
-All configurations are optional.
+All parameters are optional. Default values are recommended for official submissions.
 
 | Option | Default | Description |
 |--------|---------|-------------|
