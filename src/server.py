@@ -10,7 +10,6 @@ import logging
 import os
 
 import uvicorn
-from mcp.server.auth import settings
 from starlette.applications import Starlette
 from starlette.routing import Mount
 
@@ -25,7 +24,11 @@ from fhir_mcp import init_mcp_server
 logging_level = logging.DEBUG
 os.environ["DEBUG_TRACES"] = "True"
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(
+    level=logging.WARNING,
+    format='%(asctime)s %(levelname)s:%(name)s:%(message)s',
+    datefmt='%H:%M:%S'
+)
 logging.getLogger("fhir_green_agent").setLevel(logging_level)
 logging.getLogger("fhir_mcp").setLevel(logging_level)
 logging.getLogger("fhir_common").setLevel(logging_level)
