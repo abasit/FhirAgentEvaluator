@@ -39,6 +39,19 @@ async def evaluate_results(
     total = len(tasks)
     correct = sum(1 for t in tasks if t.result and t.result.correct == 1)
 
+    # Compute action metrics
+    action_scores = [t.result.action_correctness for t in tasks if t.result and t.result.action_correctness is not None]
+    action_tasks = len(action_scores)
+    action_correct = sum(action_scores)
+    action_accuracy = _round(action_correct / action_tasks) if action_tasks else None
+
+    # Compute retrieval metrics
+    retrieval_scores = [t.result.retrieval_correctness for t in tasks if
+                        t.result and t.result.retrieval_correctness is not None]
+    retrieval_tasks = len(retrieval_scores)
+    retrieval_correct = sum(retrieval_scores)
+    retrieval_accuracy = _round(retrieval_correct / retrieval_tasks) if retrieval_tasks else None
+
     precision_values = [t.result.precision for t in tasks if t.result and t.result.precision is not None]
     recall_values = [t.result.recall for t in tasks if t.result and t.result.recall is not None]
 
@@ -74,6 +87,12 @@ async def evaluate_results(
         total_tasks=total,
         correct_answers=correct,
         accuracy=_round(correct / total if total > 0 else 0),
+        action_tasks=action_tasks if action_tasks else None,
+        action_correct=action_correct if action_tasks else None,
+        action_accuracy=action_accuracy,
+        retrieval_tasks=retrieval_tasks if retrieval_tasks else None,
+        retrieval_correct=retrieval_correct if retrieval_tasks else None,
+        retrieval_accuracy=retrieval_accuracy,
         avg_precision=_round(avg_precision),
         avg_recall=_round(avg_recall),
         f1_score=_round(f1),
@@ -141,9 +160,12 @@ async def _calculate_answer_metrics(
                 if result.error or not result.final_answer:
                     retrieval_correctness = 0
                 else:
+                    # Normalize true answer based on true_fhir_ids (this is what FHIRAgentBench does)
+                    true_answer_normalized = "no answer" if not task.true_fhir_ids else task.true_answer
+
                     retrieval_correctness = await check_answer_correctness(
                         answer=result.final_answer,
-                        ref_answer=str(task.true_answer),
+                        ref_answer=str(true_answer_normalized),
                         question=task.question_with_context,
                         model=model,
                     )

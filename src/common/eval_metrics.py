@@ -288,18 +288,12 @@ async def compare_answers(answer: str, ref_answer: str, question: str, model: st
     return 0
 
 
-def is_null_answer(ref_answer: str) -> bool:
-    """Check if reference answer indicates no data exists."""
-    null_values = ['[]', '[[]]', '[[None]]', 'null', "['null']", '[[null]]', "['None']", '[None]']
-    return ref_answer.strip() in null_values
-
-
 async def check_answer_correctness(answer: str, ref_answer: str, question: str, model: str) -> int:
     """Two-step answer correctness check."""
 
     # Step 1: Normalize agent answer
     agent_normalized = await normalize_answer(answer, question, model)
-    true_is_null = is_null_answer(ref_answer)
+    true_is_null = (ref_answer == "no answer")
 
     # Step 2: Apply logic
     if agent_normalized == "no answer":
@@ -310,3 +304,24 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
 
     # Both have answers - compare
     return await compare_answers(answer, ref_answer, question, model)
+
+
+async def main():
+    model = "gpt-4o-mini"
+
+    question = "Question: How much is the difference of patient 10004235's weight last measured on the first hospital visit compared to the value first measured on the first hospital visit?\nContext:\nPatient FHIR ID is 568cb149-804c-59e8-bdf5-816e8151cd22.\nSearch for 'Daily Weight' to find weight."
+
+    true_answer = "[[0.]]"
+
+    agent_answer = "The final answer is: No weight measurements found for patient 568cb149-804c-59e8-bdf5-816e8151cd22."
+
+    result = await check_answer_correctness(agent_answer, true_answer, question, model)
+    print(result)
+
+
+
+if __name__ == "__main__":
+    import warnings
+    warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
+
+    asyncio.run(main())

@@ -69,6 +69,17 @@ class FHIRAgentBenchResult(BaseModel):
     total_tasks: int
     correct_answers: int
     accuracy: float
+
+    # Action metrics (tasks with expected actions)
+    action_tasks: Optional[int] = None
+    action_correct: Optional[int] = None
+    action_accuracy: Optional[float] = None
+
+    # Retrieval metrics (tasks with expected answers)
+    retrieval_tasks: Optional[int] = None
+    retrieval_correct: Optional[int] = None
+    retrieval_accuracy: Optional[float] = None
+
     avg_precision: float
     avg_recall: float
     f1_score: float
@@ -76,13 +87,22 @@ class FHIRAgentBenchResult(BaseModel):
     task_results: list[TaskOutput]
 
     def summary(self) -> str:
-        from common.utils import format_time  # lazy import
-        return (
-            f"Evaluation complete:\n"
-            f"- Total tasks: {self.total_tasks}\n"
-            f"- Correct answers: {self.correct_answers} ({self.accuracy * 100:.1f}%)\n"
-            f"- Precision: {self.avg_precision:.4f}\n"
-            f"- Recall: {self.avg_recall:.4f}\n"
-            f"- F1 Score: {self.f1_score:.4f}\n"
-            f"- Time: {format_time(self.time_used)}"
-        )
+        from common.utils import format_time
+        lines = [
+            f"Evaluation complete:",
+            f"- Total tasks: {self.total_tasks}",
+            f"- Correct answers: {self.correct_answers} ({self.accuracy * 100:.1f}%)",
+        ]
+        if self.action_tasks:
+            lines.append(
+                f"- Action correctness: {self.action_correct}/{self.action_tasks} ({self.action_accuracy * 100:.1f}%)")
+        if self.retrieval_tasks:
+            lines.append(
+                f"- Retrieval correctness: {self.retrieval_correct}/{self.retrieval_tasks} ({self.retrieval_accuracy * 100:.1f}%)")
+        lines.extend([
+            f"- Precision: {self.avg_precision:.4f}",
+            f"- Recall: {self.avg_recall:.4f}",
+            f"- F1 Score: {self.f1_score:.4f}",
+            f"- Time: {format_time(self.time_used)}",
+        ])
+        return "\n".join(lines)
