@@ -48,7 +48,49 @@ def retrieval_precision(pred: list, true: list) -> float:
     return np.mean([p in true_set for p in pred])
 
 
-ANSWER_CORRECTNESS_PROMPT = """You are a helpful assistant that evaluates whether a model answer to a question is correct, by comparing it to the true answer.
+NORMALIZE_ANSWER_PROMPT = """You are a helpful assistant that converts free-text answers into a standardized format.
+
+Your task: Determine if the model's answer successfully answers the question or if it indicates insufficient information.
+
+### Instructions:
+1. If the answer shows that the question CANNOT be answered (e.g., not enough data, unknown, missing information), return exactly:
+    no answer
+
+2. If the answer DOES answer the question, return exactly:
+    question answered
+
+Important:
+- Return ONLY one of these two values: 'no answer' or 'question answered'.
+- Do NOT include any additional text, punctuation, or explanation.
+
+---
+
+### Input:
+
+Question:
+{question}
+
+Answer:
+{answer}
+
+---
+
+### Examples:
+
+EXAMPLE 1:
+Question: Please tell me the sex of patient C  
+Answer: The patient's sex is female.  
+Return: question answered
+
+---
+
+EXAMPLE 2:
+Question: Compared to last measured on the first ICU visit, is the glucose measurement value of patient B less than second to last measured on the first ICU visit?  
+Answer: The patient does not have glucose measurements.
+Return: no answer"""
+
+
+ANSWER_COMPARISON_PROMPT = """You are a helpful assistant that evaluates whether a model answer to a question is correct, by comparing it to the true answer.
 
 Your task:
 - Return 1 if the model answer is correct.
@@ -61,51 +103,33 @@ The model answer may be more verbose or formatted differently from the true answ
 
 ### Core Rules:
 
-1. Null or no-answer cases  
-   - If the true answer is `[]`, `'null'`, `[[]]`, `[[None]]`, or explicitly states "no answer", this means no data exists.
-   - Model answers that correctly indicate no data: "none found", "no results", "no [X] recorded", empty list `[]`, or `0` for count questions.
-   - If both true answer and model answer indicate no data exists, return 1.
-   - If true answer indicates no data but model provides a non-empty answer, return 0.
-
-2. Yes/No answers 
+1. Yes/No answers 
    - True answers may appear as `[[0]]` (No) or `[[1]]` (Yes), with flexible formatting (e.g., `[0]`, `'[[0]]'` are equivalent).
    - Evaluate based on meaning, not syntax.
    - Ignore differences in variable names or context if the Yes/No meaning aligns.
-   - If true answer is [[1]] (Yes) and model provides a non-empty list or specific details, this implies "yes" - return 1.
-   - If true answer is [[0]] (No) and model says "none found", "no results", or returns an empty list, return 1.
 
-3. Numerical answers
+2. Numerical answers
    - Match on value, rounding both sides to the nearest integer, except for days (which should be rounded to the nearest whole day).
    - Be lenient if the model answer has the true answer in the breakdown but returns a different total aggregated value.
    - Ignore decimal formatting (`1.0` = `1.` = `1`).
    - Ignore units (`1850` = `1850 mL`).
 
-4. Date answers
+3. Date answers
     - Match on dates, you can ignore time and timezone differences unless specifically stated in the question.
     - A time difference of up to a minute is acceptable, as the values may be rounded.
 
-5. List answers
+4. List answers
    - If the true answer is a list (e.g., `['or ebl', 'or urine']`), the model must include all listed values and no extra medical values.  
    - Ignore harmless extra context (e.g., time references, phrasing).
 
-6. Text/string answers
-   - Ignore case differences ("Emergency Department" = "emergency department")
-   - Accept partial matches if the core meaning is clear ("emergency" matches "Emergency Department")
-   - Common abbreviations or shortened forms are acceptable if unambiguous ("ED" = "Emergency Department", "ICU" = "Intensive Care Unit")
-   
-7. Detail and verbosity
+5. Detail and verbosity
    - Extra correct details in the model answer are fine if they align with the true answer.
 
-8. Formatting leniency
+6. Formatting leniency
    - Be lenient with brackets, quotes, spacing, and style.
    - As long as the model’s answer semantically matches the true answer, return 1.
 
-9. Unknown or failure responses
-   - If the model answers "Unknown", "I don't know", "Unable to determine", or similar, this indicates the model failed to find an answer.
-   - This is NOT the same as "no data exists" - it means the model could not retrieve or interpret the data.
-   - Return 0 unless the true answer is also explicitly unknown/null.
-
-10. Drug interaction questions
+7. Drug interaction questions
    - Answer has two parts: [list of current medications, interaction status]
    - Expected format: [['med1', 'med2', ...], 'interaction exists'] or [['med1', ...], 'no interactions']
    - Part 1 (medications): Model must list all current medications. Use list matching rules.
@@ -114,7 +138,9 @@ The model answer may be more verbose or formatted differently from the true answ
    - If interaction exists, model is correct if it identifies ANY risk, caution, warning, or potential interaction.
    - If no interaction exists, model is correct if its FINAL CONCLUSION states no interactions.
    - Ignore general drug warnings about medications not in the patient's current list.
-   
+
+---
+
 ### Examples:
 
 EXAMPLE 1:
@@ -178,7 +204,7 @@ EXAMPLE 7:
 - reasoning : The true answer is a timestamp. The model provides the same timestamp and mentions the maximum cholesterol value, which aligns with the true answer context. Here there is additional information (the max value) but the answer is still correct. It is okay that the answer does not contain the exact time. 
 You will return : 1
 
---
+---
 
 EXAMPLE 8:
 - question : Tell me the total ['acetaminophen'] dose that patient 10037975 has been prescribed?
@@ -191,43 +217,25 @@ Breakdown:
 - reasoning : The true answer only shows the total dose for the basic variation of Acetaminophen, whereas the model provides the total dose for all variations, breaking down the count for the basic one.
 You will return : 1
 
---
+---
 
 EXAMPLE 9:
-- question: Did patient 10015272 receive any disease diagnoses in the last hospital encounter?
-- true answer: [[1]]
-- model answer: ['Gas pain', 'Long term (current) use of aspirin', 'Monoclonal gammopathy', ...]
-- reasoning: The true answer is Yes (`[[1]]`). The model provides a list of diagnoses, which implies the patient DID receive diagnoses. A non-empty list of diagnoses means "yes".
-You will return: 1
-
---
-
-EXAMPLE 10:
-- question: Which care unit did patient X first enter?
-- true answer: [['Emergency Department']]
-- model answer: emergency
-- reasoning: The model's answer "emergency" clearly refers to the Emergency Department. The shortened form is unambiguous and semantically matches.
-You will return: 1
-
---
-
-EXAMPLE 11:
 - question: I'm considering prescribing nifedipine to Patient 10012552. First list their current medications, then tell me if there are any drug interactions.
 - true answer: [['docusate sodium (liquid)', 'glucose gel', 'heparin'], 'interaction exists']
 - model answer: [['docusate sodium (liquid)', 'glucose gel', 'heparin'], 'interaction exists']
 - reasoning: Model provides exact structured format matching the true answer. Both medication list and interaction status match.
 You will return: 1
 
---
+---
 
-EXAMPLE 12:
+EXAMPLE 10:
 - question: Patient 10020740 is set to begin furosemide. Does it interact with current medications?
 - true answer: [['insulin'], 'interaction exists']
 - model answer: Current medications: insulin. Furosemide may affect blood glucose levels and could require adjustment of insulin dosing. Caution is advised.
 - reasoning: Model identifies insulin and notes a potential interaction concern. Natural language format is acceptable.
 You will return: 1
 
---
+---
 
 ### Final Input:
 - Question: {question}
@@ -238,9 +246,28 @@ You will return: 1
 Return only 0 or 1. Do not explain your reasoning.
 """
 
-async def check_answer_correctness(answer: str, ref_answer: str, question: str, model: str) -> int:
-    """Check if agent answer matches reference using LLM evaluation."""
-    prompt = ANSWER_CORRECTNESS_PROMPT.format(
+
+async def normalize_answer(answer: str, question: str, model: str) -> str:
+    """Returns 'no answer' or 'question answered'"""
+    prompt = NORMALIZE_ANSWER_PROMPT.format(question=question, answer=answer)
+
+    response = await litellm.acompletion(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0,
+        seed=0,
+    )
+
+    result = response.choices[0].message.content.strip().lower()
+
+    if "no answer" in result:
+        return "no answer"
+    return "question answered"
+
+
+async def compare_answers(answer: str, ref_answer: str, question: str, model: str) -> int:
+    """Compare two answers that both contain data."""
+    prompt = ANSWER_COMPARISON_PROMPT.format(
         question=question,
         ref_answer=ref_answer,
         answer=answer,
@@ -250,7 +277,6 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
-        seed=0,
     )
 
     result = response.choices[0].message.content.strip()
@@ -260,3 +286,27 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
 
     logger.warning(f"Unexpected LLM response: {result}, defaulting to 0")
     return 0
+
+
+def is_null_answer(ref_answer: str) -> bool:
+    """Check if reference answer indicates no data exists."""
+    null_values = ['[]', '[[]]', '[[None]]', 'null', "['null']", '[[null]]', "['None']", '[None]']
+    return ref_answer.strip() in null_values
+
+
+async def check_answer_correctness(answer: str, ref_answer: str, question: str, model: str) -> int:
+    """Two-step answer correctness check."""
+
+    # Step 1: Normalize agent answer
+    agent_normalized = await normalize_answer(answer, question, model)
+    true_is_null = is_null_answer(ref_answer)
+
+    # Step 2: Apply logic
+    if agent_normalized == "no answer":
+        return 1 if true_is_null else 0
+
+    if true_is_null:
+        return 0  # agent gave answer but no data should exist
+
+    # Both have answers - compare
+    return await compare_answers(answer, ref_answer, question, model)

@@ -7,7 +7,6 @@ Exposes an agent card and MCP tools for participant agents.
 
 import argparse
 import logging
-import os
 
 import uvicorn
 from starlette.applications import Starlette
