@@ -33,6 +33,8 @@ class TaskResult(BaseModel):
 
     # Populated after evaluation
     correct: Optional[int] = None
+    action_correctness: Optional[int] = None
+    retrieval_correctness: Optional[int] = None
     precision: Optional[float] = None
     recall: Optional[float] = None
 
@@ -55,6 +57,8 @@ class TaskOutput(BaseModel):
     true_answer: str
     final_answer: Optional[str] = None
     correct: Optional[int] = None
+    action_correctness: Optional[int] = None
+    retrieval_correctness: Optional[int] = None
     precision: Optional[float] = None
     recall: Optional[float] = None
     error: Optional[str] = None

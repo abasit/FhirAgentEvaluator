@@ -59,11 +59,13 @@ async def evaluate_results(
             question_id=task.question_id,
             question=task.question_with_context,
             true_answer=task.true_answer,
-            final_answer=task.result.final_answer if task.result else None,
-            correct=task.result.correct if task.result else None,
-            precision=_round(task.result.precision) if task.result else None,
-            recall=_round(task.result.recall) if task.result else None,
-            error=task.result.error if task.result else None,
+            final_answer=task.result.final_answer,
+            action_correctness=task.result.action_correctness,
+            retrieval_correctness=task.result.retrieval_correctness,
+            correct=task.result.correct,
+            precision=_round(task.result.precision),
+            recall=_round(task.result.recall),
+            error=task.result.error,
         )
         for task in tasks
     ]
@@ -124,34 +126,33 @@ async def _calculate_answer_metrics(
                 completed += 1
                 return
 
+            action_correctness = None
+            retrieval_correctness = None
+
+            # Action correctness (for action tasks)
             if task.task_type in ("medagentbench_action", "medagentbench_retrieval_action"):
                 action_correct, reason = _evaluate_action_task(task.expected_actions, result)
+                action_correctness = 1 if action_correct else 0
                 if not action_correct:
-                    correctness = 0
                     logger.debug(f"[{task.question_id}] Action mismatch: {reason}")
-                elif task.task_type == "medagentbench_action":
-                    correctness = 0 if result.error else 1
-                elif result.error or not result.final_answer:
-                    correctness = 0
+
+            # Retrieval correctness (for non-action-only tasks)
+            if task.task_type != "medagentbench_action":
+                if result.error or not result.final_answer:
+                    retrieval_correctness = 0
                 else:
-                    correctness = await check_answer_correctness(
+                    retrieval_correctness = await check_answer_correctness(
                         answer=result.final_answer,
                         ref_answer=str(task.true_answer),
                         question=task.question_with_context,
                         model=model,
                     )
-            else:
-                if result.error or not result.final_answer:
-                    correctness = 0
-                else:
-                    correctness = await check_answer_correctness(
-                        answer=result.final_answer,
-                        ref_answer=task.true_answer,
-                        question=task.question_with_context,
-                        model=model,
-                    )
 
-            result.correct = correctness
+            # Combined correctness
+            non_null = [v for v in [action_correctness, retrieval_correctness] if v is not None]
+            result.action_correctness = action_correctness
+            result.retrieval_correctness = retrieval_correctness
+            result.correct = 1 if non_null and all(v == 1 for v in non_null) else 0
 
             completed += 1
             if completed % 100 == 0 or completed == total:
