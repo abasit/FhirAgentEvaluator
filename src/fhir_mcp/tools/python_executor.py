@@ -55,7 +55,7 @@ def execute_python_code(code: str) -> dict:
 
     Available:
         - retrieved_resources: dict of resource_type -> list of FHIR resources
-        - json, re, datetime, math, statistics modules
+        - json, re, datetime, math, statistics, collections modules
         - Built-in functions: len, min, max, sum, sorted, list, dict, str, int, float, bool, range, enumerate, zip, any, all, abs, round
     """
 
@@ -69,6 +69,13 @@ def execute_python_code(code: str) -> dict:
     if isinstance(resources, dict):
         resources = _normalize_retrieved_resources(resources)
 
+    ALLOWED_IMPORTS = {'datetime', 'json', 're', 'math', 'statistics', 'collections'}
+
+    def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name not in ALLOWED_IMPORTS:
+            raise ImportError(f"Import of '{name}' not allowed. Allowed: {ALLOWED_IMPORTS}")
+        return __import__(name, globals, locals, fromlist, level)
+
     safe_builtins = {
         'len': len, 'min': min, 'max': max, 'sum': sum, 'sorted': sorted,
         'list': list, 'dict': dict, 'set': set, 'tuple': tuple,
@@ -76,6 +83,7 @@ def execute_python_code(code: str) -> dict:
         'range': range, 'enumerate': enumerate, 'zip': zip,
         'any': any, 'all': all, 'abs': abs, 'round': round,
         'True': True, 'False': False, 'None': None,
+        '__import__': safe_import,
     }
 
     exec_globals = {
