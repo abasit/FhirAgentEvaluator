@@ -160,12 +160,9 @@ async def _calculate_answer_metrics(
                 if result.error or not result.final_answer:
                     retrieval_correctness = 0
                 else:
-                    # Normalize true answer based on true_fhir_ids (this is what FHIRAgentBench does)
-                    true_answer_normalized = "no answer" if not task.true_fhir_ids else task.true_answer
-
                     retrieval_correctness = await check_answer_correctness(
                         answer=result.final_answer,
-                        ref_answer=str(true_answer_normalized),
+                        ref_answer=str(task.true_answer),
                         question=task.question_with_context,
                         model=model,
                     )

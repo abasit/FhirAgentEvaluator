@@ -17,10 +17,10 @@ INFO_FIELDS = ["drug_interactions", "boxed_warning", "warnings", "contraindicati
 
 def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
     """
-    Fetch FDA label interaction/warning text for a list of drugs.
+    Fetch FDA label interaction/warning text for a list of at most 5 drugs.
 
     Args:
-        drug_list: List of drug names to check, maximum 5.
+        drug_list: List of drug names to check. Maximum list size is 5.
             Example: ["nifedipine", "heparin", "lisinopril"]
 
     Returns:
@@ -32,7 +32,7 @@ def get_fda_drug_labels(drug_list: list[str]) -> dict[str, str]:
 
     if len(drug_list) > MAX_DRUGS:
         return {
-            "error": f"Too many drugs requested ({len(drug_list)}). Maximum is {MAX_DRUGS}. Query the most relevant drugs only."}
+            "error": f"Too many drugs requested ({len(drug_list)}). Maximum is {MAX_DRUGS}."}
 
     labels = {}
     for drug in drug_list:
