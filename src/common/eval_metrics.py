@@ -53,10 +53,13 @@ NORMALIZE_ANSWER_PROMPT = """You are a helpful assistant that converts free-text
 Your task: Determine if the model's answer successfully answers the question or if it indicates insufficient information.
 
 ### Instructions:
-1. If the answer shows that the question CANNOT be answered (e.g., not enough data, unknown, missing information), return exactly:
+1. If the answer indicates a FAILURE or ERROR (e.g., "unable to calculate", "execution error", "failed to determine", "encountered an error"), return exactly:
+    question answered
+    
+2. If the answer shows that the question CANNOT be answered (e.g., not enough data, unknown, missing information), return exactly:
     no answer
 
-2. If the answer DOES answer the question, return exactly:
+3. If the answer DOES answer the question, return exactly:
     question answered
 
 Important:
@@ -87,7 +90,16 @@ Return: question answered
 EXAMPLE 2:
 Question: Compared to last measured on the first ICU visit, is the glucose measurement value of patient B less than second to last measured on the first ICU visit?  
 Answer: The patient does not have glucose measurements.
-Return: no answer"""
+Return: no answer
+
+---
+
+EXAMPLE 3:
+Question: What is the heart rate of patient C?
+Answer: Unable to determine the answer due to execution errors.
+Return: question answered
+
+"""
 
 
 ANSWER_COMPARISON_PROMPT = """You are a helpful assistant that evaluates whether a model answer to a question is correct, by comparing it to the true answer.
