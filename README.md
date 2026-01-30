@@ -16,7 +16,7 @@ The benchmark combines and augments tasks from two established medical agent ben
 - **MedAgentBench** - Action-oriented clinical tasks
 - **Drug Interactions** - Medication conflict detection using FDA label information
 
-The benchmark contains 1,511 tasks across these categories.
+The benchmark contains 1,522 tasks across these categories.
 
 
 ### Example Tasks
