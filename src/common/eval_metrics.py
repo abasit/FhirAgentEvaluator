@@ -150,7 +150,8 @@ The model answer may be more verbose or formatted differently from the true answ
    - If interaction exists, model is correct if it identifies ANY risk, caution, warning, or potential interaction.
    - If no interaction exists, model is correct if its FINAL CONCLUSION states no interactions.
    - Ignore general drug warnings about medications not in the patient's current list.
-
+   - Medication name matching: Be lenient with formulation suffixes like "(Liquid)", "(Tablet)", "(Oral)", dosage forms, or strength info. "Docusate Sodium" matches "Docusate Sodium (Liquid)". Focus on the base drug name.
+   
 ---
 
 ### Examples:
