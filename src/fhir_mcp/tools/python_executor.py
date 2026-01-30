@@ -57,6 +57,9 @@ def execute_python_code(code: str) -> dict:
         - retrieved_resources: dict of resource_type -> list of FHIR resources
         - json, re, datetime, math, statistics, collections modules
         - Built-in functions: len, min, max, sum, sorted, list, dict, str, int, float, bool, range, enumerate, zip, any, all, abs, round
+
+    Note:
+        When comparing dates, use timezone-naive comparison (strip timezone info, do not convert to UTC).
     """
 
     try:

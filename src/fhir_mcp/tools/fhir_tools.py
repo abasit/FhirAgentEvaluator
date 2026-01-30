@@ -10,6 +10,9 @@ from common.fhir_client import get_fhir_client
 
 
 FHIR_SCHEMA = """
+Working with FHIR Data:
+- When comparing dates, use timezone-naive comparison (strip timezone info, do not convert to UTC).
+
 Available Resource Types and FHIR Resource Schemas:
 
 Condition: {
