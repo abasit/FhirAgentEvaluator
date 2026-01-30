@@ -165,6 +165,7 @@ async def _calculate_answer_metrics(
                         ref_answer=str(task.true_answer),
                         question=task.question_with_context,
                         model=model,
+                        true_fhir_ids=task.true_fhir_ids,
                     )
 
             # Combined correctness

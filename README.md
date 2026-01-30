@@ -16,6 +16,8 @@ The benchmark combines and augments tasks from two established medical agent ben
 - **MedAgentBench** - Action-oriented clinical tasks
 - **Drug Interactions** - Medication conflict detection using FDA label information
 
+The benchmark contains 1,511 tasks across these categories.
+
 ## How It Works
 
 1. **Task Dispatch**: The green agent sends clinical questions to the purple agent via A2A protocol
@@ -119,9 +121,6 @@ This starts:
 - FHIR server (MIMIC-IV-FHIR) on `http://localhost:8080/fhir`
 - Green agent on `http://localhost:9009`
 
-
-  **Note**: The FHIR database image is ~2GB and may take a few minutes to download and initialize on first run.
-
 4. Verify services are running:
 ```bash
 # Check green agent
@@ -130,6 +129,14 @@ curl "http://localhost:9009/.well-known/agent-card.json"
 # Check FHIR server
 curl "http://localhost:8080/fhir/Patient?_summary=count"
 ```
+### Resource Usage
+
+| Resource            | Requirement                                                      |
+|---------------------|------------------------------------------------------------------|
+| FHIR database image | ~2GB download, may take a few minutes to initialize on first run |
+| Benchmark runtime   | ~3 hours depending on LLM inference                              |
+
+For testing, use `num_tasks` in `scenario.toml` to run a subset.
 
 ## Running the Benchmark
 

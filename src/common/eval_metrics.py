@@ -305,7 +305,13 @@ def is_null_answer(ref_answer: str) -> bool:
     return ref_answer.strip() in null_values
 
 
-async def check_answer_correctness(answer: str, ref_answer: str, question: str, model: str) -> int:
+async def check_answer_correctness(
+    answer: str,
+    ref_answer: str,
+    question: str,
+    model: str,
+    true_fhir_ids: dict | None = None,
+) -> int:
     """Two-step answer correctness check."""
 
     # Step 1: Normalize agent answer
@@ -314,7 +320,12 @@ async def check_answer_correctness(answer: str, ref_answer: str, question: str, 
 
     # Step 2: Apply logic
     if agent_normalized == "no answer":
-        return 1 if true_is_null else 0
+        if true_is_null:
+            return 1
+        # Special case: boolean with no resources - accept "no data" as valid
+        if true_fhir_ids is not None and not true_fhir_ids and ref_answer == "[[0]]":
+            return 1
+        return 0
 
     if true_is_null:
         return 0  # agent gave answer but no data should exist
