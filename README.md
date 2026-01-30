@@ -18,6 +18,15 @@ The benchmark combines and augments tasks from two established medical agent ben
 
 The benchmark contains 1,511 tasks across these categories.
 
+
+### Example Tasks
+
+> When was the first time the respiratory rate of patient 10018081 was measured to be less than 23.0 today?
+
+> Retrieve the most recent platelet count for patient 10012853. Order a new test if the last result is older than 1 year.
+
+> Review Patient 10018081 current medication list and assess if Tramadol can be safely added without interactions.
+
 ## How It Works
 
 1. **Task Dispatch**: The green agent sends clinical questions to the purple agent via A2A protocol
@@ -31,16 +40,12 @@ The benchmark contains 1,511 tasks across these categories.
 
 ### Communication Modes
 
-| Mode | Description |
-|------|-------------|
-| **MCP** (default) | Purple agent connects to an MCP server and calls tools directly |
-| **Messaging** | Multi-turn conversation where the purple agent requests tool calls and the green agent executes them |
+| Mode | Description                                                                                                                                             |
+|------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **MCP** (default) | Single-turn. The green agent provides the url to the MCP Server. Purple agent must use this to calls tools directly, and respond with the final answer. |
+| **Messaging** | Multi-turn. The purple agent must ask the green agent to call tools, and must respond with the final answer once finished.                              |
 
 Both modes provide access to the same tools. Results should be comparable, though not guaranteed identical due to differences in tool description and result formatting.
-
-### Example Task
-
-> What was patient 10015860's most recent hemoglobin value during their last hospital encounter?
 
 ### Evaluation Metrics
 
@@ -168,7 +173,7 @@ endpoint = "http://localhost:9010"
 num_tasks = 0  # 0 for all tasks
 tasks_file = "data/eval_tasks.csv"
 mcp_enabled = true
-max_iterations = 10
+max_iterations = 10 # Applicable only if mcp_enabled is false
 ```
 
 4. Run the evaluation:
