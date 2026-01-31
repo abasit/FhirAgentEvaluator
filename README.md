@@ -16,7 +16,7 @@ The benchmark combines and augments tasks from two established medical agent ben
 - **MedAgentBench** - Action-oriented clinical tasks
 - **Drug Interactions** - Medication conflict detection using FDA label information
 
-The benchmark contains 1,522 tasks across these categories.
+The benchmark contains 1,521 tasks across these categories.
 
 
 ### Example Tasks
@@ -158,7 +158,7 @@ For testing and development:
 docker compose up green-agent
 ```
 
-2. Start your purple agent separately (e.g., on `http://localhost:9009`)
+2. Start your purple agent in a separate terminal (e.g., on `http://localhost:9010`)
 
 3. Configure `scenario.toml`:
 ```toml
@@ -176,7 +176,7 @@ mcp_enabled = true
 max_iterations = 10 # Applicable only if mcp_enabled is false
 ```
 
-4. Run the evaluation:
+4. Run the evaluation in another terminal:
 ```bash
 python -m launcher.client_cli scenario.toml output.json
 ```
