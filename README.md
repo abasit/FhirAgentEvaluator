@@ -115,16 +115,18 @@ cp sample.env .env
 # Edit .env with your OpenAI API key
 ```
 
-3. Start the green agent and the FHIR server:
+3. Start the FHIR server:
 ```bash
-docker compose up green-agent
+docker pull ghcr.io/abasit/fhir-mimic-h2:latest
+docker run -p 8080:8080 ghcr.io/abasit/fhir-mimic-h2:latest
 ```
 
-This starts:
-- FHIR server (MIMIC-IV-FHIR) on `http://localhost:8080/fhir`
-- Green agent on `http://localhost:9009`
+4. Start the green agent (in a new terminal):
+```bash
+uv run src/server.py --port 9009
+```
 
-4. Verify services are running:
+5. Verify services are running:
 ```bash
 # Check green agent
 curl "http://localhost:9009/.well-known/agent-card.json"
@@ -132,6 +134,7 @@ curl "http://localhost:9009/.well-known/agent-card.json"
 # Check FHIR server
 curl "http://localhost:8080/fhir/Patient?_summary=count"
 ```
+
 ### Resource Usage
 
 | Resource            | Requirement                                                      |
@@ -151,12 +154,9 @@ For official submissions and leaderboard results, see the [AgentBeats platform](
 
 For testing and development:
 
-1. Start the green agent and FHIR server:
-```bash
-docker compose up green-agent
-```
+1. Start the FHIR server and green agent (see Quick Start above)
 
-2. Start your purple agent in a separate terminal (e.g., on `http://localhost:9010`)
+2. Start your purple agent (e.g., on `http://localhost:9010`)
 
 3. Configure `scenario.toml`:
 ```toml
@@ -171,10 +171,10 @@ endpoint = "http://localhost:9010"
 num_tasks = 0  # 0 for all tasks
 tasks_file = "data/eval_tasks.csv"
 mcp_enabled = true
-max_iterations = 10 # Applicable only if mcp_enabled is false
+max_iterations = 10  # Applicable only if mcp_enabled is false
 ```
 
-4. Run the evaluation in another terminal:
+4. Run the evaluation:
 ```bash
 python -m launcher.client_cli scenario.toml output.json
 ```
