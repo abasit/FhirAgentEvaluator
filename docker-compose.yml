@@ -9,7 +9,7 @@ services:
     ports:
       - "9009:9009"
     environment:
-      - FHIR_SERVER_URL=http://fhir-server:8080/fhir
+      - FHIR_SERVER_URL=${FHIR_SERVER_URL}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - fhir-server
