@@ -49,11 +49,9 @@ Both modes provide access to the same tools. Results should be comparable, thoug
 
 ### Evaluation Metrics
 
-- **Answer Correctness** - LLM-based semantic comparison with reference answers
+- **Answer Correctness** - Overall task correctness (response + action when required)
 - **Action Correctness** - Validation of FHIR POST requests (resource type, parameters)
-- **Retrieval Precision/Recall** - Comparison of retrieved FHIR resource IDs against ground truth
-
-
+- **F1 Score** - Harmonic mean of retrieval precision and recall (FHIR resource IDs vs ground truth)
 
 ## Repository Structure
 ```
@@ -141,7 +139,7 @@ curl "http://localhost:8080/fhir/Patient?_summary=count"
 | FHIR database image | ~2GB download, may take a few minutes to initialize on first run |
 | Benchmark runtime   | ~3 hours depending on LLM inference                              |
 
-For testing, use `num_tasks` in `scenario.toml` to run a subset.
+For testing, use `tasks_file` and `num_tasks` in `scenario.toml` to run on subsets of tasks.
 
 ## Running the Benchmark
 
@@ -187,12 +185,12 @@ Results are written to `output.json`.
 
 All parameters are optional. Default values are recommended for official submissions.
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `num_tasks` | 0 (all) | Number of tasks to run |
-| `tasks_file` | `data/eval_tasks.csv` | Path to task CSV |
-| `mcp_enabled` | true | MCP mode (true) or messaging mode (false) |
-| `max_iterations` | 10 | Max agent turns per task |
+| Option | Default | Description                                                  |
+|--------|---------|--------------------------------------------------------------|
+| `num_tasks` | 0 (all) | Number of tasks to run                                       |
+| `tasks_file` | `data/eval_tasks.csv` | Path to task CSV                                             |
+| `mcp_enabled` | true | MCP mode (true) or messaging mode (false)                    |
+| `max_iterations` | 10 | Max agent turns per task. Applicable only in messaging mode. |
 
 ## Citation
 
